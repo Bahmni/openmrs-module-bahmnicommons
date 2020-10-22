@@ -3,13 +3,15 @@ package org.bahmni.module.bahmnicommons.web.v1_0.controller.search;
 import org.bahmni.module.bahmnicommons.contract.patient.PatientSearchParameters;
 import org.bahmni.module.bahmnicommons.contract.patient.response.PatientResponse;
 import org.openmrs.Patient;
-import org.openmrs.api.context.Context;
+import org.openmrs.api.PatientService;
 import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.RestUtil;
 import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
+import org.openmrs.module.webservices.rest.web.response.IllegalRequestException;
 import org.openmrs.module.webservices.rest.web.response.ResponseException;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,14 +33,35 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/appointments/search/patient")
 public class BahmniAppointmentsPatientSearchController extends BaseRestController {
     
+    private PatientService patientService;
+    
+    @Autowired
+    public void setPatientService(PatientService patientService) {
+        this.patientService = patientService;
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<AlreadyPaged<PatientResponse>> search(HttpServletRequest request, HttpServletResponse response) throws ResponseException {
+    public ResponseEntity<AlreadyPaged<PatientResponse>> search(HttpServletRequest request,
+                                                                HttpServletResponse response) throws ResponseException {
 
         try {
             RequestContext requestContext = RestUtil.getRequestContext(request, response);
             PatientSearchParameters searchParameters = new PatientSearchParameters(requestContext);
-            List<Patient> patients = Context.getPatientService().getPatients(searchParameters.getName());
+            String query = searchParameters.getIdentifier() != null ? searchParameters.getIdentifier() : searchParameters.getName();
+            
+            if (searchParameters.getCustomAttribute() != null ||
+                    searchParameters.getAddressFieldValue() != null ||
+                    searchParameters.getPatientAttributes() != null ||
+                    searchParameters.getProgramAttributeFieldValue() != null ||
+                    searchParameters.getProgramAttributeFieldName() != null ||
+                    searchParameters.getAddressSearchResultFields() != null ||
+                    searchParameters.getPatientSearchResultFields() != null ||
+                    searchParameters.getLoginLocationUuid() != null) {
+                throw new IllegalRequestException("An unsupported search parameter was provided.");
+            }
+            
+            List<Patient> patients = patientService.getPatients(query);
                         
             List<PatientResponse> patientResponseList = patients.stream().map(patient -> {
                 PatientResponse patientResponse = new PatientResponse();
