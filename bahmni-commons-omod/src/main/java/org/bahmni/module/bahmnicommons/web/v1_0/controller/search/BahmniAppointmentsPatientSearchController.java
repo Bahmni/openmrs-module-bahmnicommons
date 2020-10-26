@@ -48,8 +48,7 @@ public class BahmniAppointmentsPatientSearchController extends BaseRestControlle
         try {
             RequestContext requestContext = RestUtil.getRequestContext(request, response);
             PatientSearchParameters searchParameters = new PatientSearchParameters(requestContext);
-            String query = searchParameters.getIdentifier() != null ? searchParameters.getIdentifier() : searchParameters.getName();
-            
+
             if (searchParameters.getCustomAttribute() != null ||
                     searchParameters.getAddressFieldValue() != null ||
                     searchParameters.getPatientAttributes() != null ||
@@ -60,7 +59,8 @@ public class BahmniAppointmentsPatientSearchController extends BaseRestControlle
                     searchParameters.getLoginLocationUuid() != null) {
                 throw new IllegalRequestException("An unsupported search parameter was provided.");
             }
-            
+
+            String query = searchParameters.getIdentifier() != null ? searchParameters.getIdentifier() : searchParameters.getName();
             List<Patient> patients = patientService.getPatients(query);
                         
             List<PatientResponse> patientResponseList = patients.stream().map(patient -> {
