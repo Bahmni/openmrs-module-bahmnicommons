@@ -36,14 +36,14 @@ public class BahmniAppointmentsPatientSearchControllerTest extends BaseIntegrati
     private PatientService patientService;
     
     @Autowired
-    private BahmniAppointmentsPatientSearchController bahmniAppointmentsPatientSearchController;
+    private BahmniAppointmentsPatientSearchController ctrl;
 
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
     
     @Before
     public void setUp() throws Exception {
-        bahmniAppointmentsPatientSearchController.setPatientService(patientService);
+        ctrl.setPatientService(patientService);
         List<Patient> patients = new ArrayList<>();
         Patient patient = new Patient();
         patient.setPersonId(1);
@@ -52,25 +52,25 @@ public class BahmniAppointmentsPatientSearchControllerTest extends BaseIntegrati
     }
     
     @Test
-    public void shouldSearchByIdentifier() {
+    public void search_shouldSearchByIdentifier() {
         when(httpServletRequest.getParameter("q")).thenReturn("GAN200001");
-        bahmniAppointmentsPatientSearchController.search(httpServletRequest, httpServletResponse);
+        ctrl.search(httpServletRequest, httpServletResponse);
         verify(patientService, times(1)).getPatients("GAN200001");
     }
     
     @Test
-    public void shouldSearchByName() {
+    public void search_shouldSearchByName() {
         when(httpServletRequest.getParameter("q")).thenReturn("John");
-        ResponseEntity<AlreadyPaged<PatientResponse>> response = bahmniAppointmentsPatientSearchController.search(httpServletRequest, httpServletResponse);
+        ResponseEntity<AlreadyPaged<PatientResponse>> response = ctrl.search(httpServletRequest, httpServletResponse);
         List<PatientResponse> patients = response.getBody().getPageOfResults();
         verify(patientService, times(1)).getPatients("John");
     }
 
     @Test
-    public void shouldFailWithUnsupportedSearchParameter() {
+    public void search_shouldFailWithUnsupportedSearchParameter() {
         when(httpServletRequest.getParameter("customAttribute")).thenReturn("testCustomAttribute");
         exceptionRule.expect(ResponseException.class);
         exceptionRule.expectMessage("An unsupported search parameter was provided.");
-        bahmniAppointmentsPatientSearchController.search(httpServletRequest, httpServletResponse);
+        ctrl.search(httpServletRequest, httpServletResponse);
     }
 }
