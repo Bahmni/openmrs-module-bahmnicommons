@@ -55,8 +55,7 @@ public class BahmniAppointmentsPatientSearchController extends BaseRestControlle
                     searchParameters.getProgramAttributeFieldValue() != null ||
                     searchParameters.getProgramAttributeFieldName() != null ||
                     searchParameters.getAddressSearchResultFields() != null ||
-                    searchParameters.getPatientSearchResultFields() != null ||
-                    searchParameters.getLoginLocationUuid() != null) {
+                    searchParameters.getPatientSearchResultFields() != null) {
                 throw new IllegalRequestException("An unsupported search parameter was provided.");
             }
 
