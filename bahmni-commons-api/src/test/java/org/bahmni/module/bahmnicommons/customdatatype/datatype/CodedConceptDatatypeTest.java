@@ -11,6 +11,7 @@ import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.customdatatype.InvalidCustomValueException;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -22,6 +23,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Context.class)
+@PowerMockIgnore("javax.management.*")
 public class CodedConceptDatatypeTest {
     @Mock
     ConceptService conceptService;

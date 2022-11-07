@@ -2,7 +2,7 @@ package org.bahmni.module.bahmnicommons.contract.patient.search;;
 
 import org.bahmni.module.bahmnicommons.contract.patient.response.PatientResponse;
 import org.bahmni.module.bahmnicommons.customdatatype.datatype.CodedConceptDatatype;
-import org.bahmni.module.bahmnicommons.model.bahmniPatientProgram.ProgramAttributeType;
+import org.openmrs.ProgramAttributeType;
 import org.hibernate.SQLQuery;
 import org.hibernate.SessionFactory;
 import org.hibernate.transform.Transformers;

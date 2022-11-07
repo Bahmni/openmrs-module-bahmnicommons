@@ -1,14 +1,39 @@
 package org.bahmni.module.bahmnicommons.contract.patient.search;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
-
+@PowerMockIgnore("javax.management.*")
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Context.class)
 public class PatientAttributeQueryHelperTest {
+
+    @Mock
+    private UserContext userContext;
+
+    @Before
+    public void setUp() throws Exception {
+        initMocks(this);
+        PowerMockito.mockStatic(Context.class);
+        Locale defaultLocale = new Locale("en", "GB");
+        when(Context.getLocale()).thenReturn(defaultLocale);
+    }
 
     @Test
     public void codedPersonAttributeShouldReturnConceptName() {

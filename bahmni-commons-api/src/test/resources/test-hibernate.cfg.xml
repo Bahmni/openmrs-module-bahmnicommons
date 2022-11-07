@@ -5,8 +5,5 @@
 <hibernate-configuration>
 
     <session-factory>
-        <mapping resource="ProgramAttributeType.hbm.xml"/>
-        <mapping resource="PatientProgramAttribute.hbm.xml"/>
-        <mapping resource="PatientProgram.hbm.xml"/>
     </session-factory>
 </hibernate-configuration>

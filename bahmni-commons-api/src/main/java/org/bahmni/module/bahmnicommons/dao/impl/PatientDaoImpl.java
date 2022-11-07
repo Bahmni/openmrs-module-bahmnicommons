@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bahmni.module.bahmnicommons.contract.patient.response.PatientResponse;
 import org.bahmni.module.bahmnicommons.contract.patient.search.PatientSearchBuilder;
 import org.bahmni.module.bahmnicommons.dao.PatientDao;
-import org.bahmni.module.bahmnicommons.model.bahmniPatientProgram.ProgramAttributeType;
+import org.openmrs.ProgramAttributeType;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.SessionFactory;

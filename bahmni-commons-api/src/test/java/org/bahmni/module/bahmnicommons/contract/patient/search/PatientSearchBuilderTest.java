@@ -3,6 +3,7 @@ package org.bahmni.module.bahmnicommons.contract.patient.search;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.type.Type;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,8 +14,15 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.openmrs.Location;
 import org.openmrs.api.LocationService;
+import org.openmrs.api.context.Context;
+import org.openmrs.api.context.UserContext;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
@@ -22,7 +30,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(MockitoJUnitRunner.class)
+@PowerMockIgnore("javax.management.*")
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Context.class)
 public class PatientSearchBuilderTest {
 
     @Mock
@@ -32,7 +42,7 @@ public class PatientSearchBuilderTest {
     private Session session;
 
     @Mock
-    private SQLQuery mockSqlQuery;
+    private NativeQuery mockSqlQuery;
 
     @Mock
     private LocationService locationService;
@@ -40,12 +50,18 @@ public class PatientSearchBuilderTest {
     @Mock
     private Location location;
 
+    @Mock
+    private UserContext userContext;
+
     @Captor
     ArgumentCaptor<String> queryCaptor;
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
+        PowerMockito.mockStatic(Context.class);
+        Locale defaultLocale = new Locale("en", "GB");
+        when(Context.getLocale()).thenReturn(defaultLocale);
         when(sessionFactory.getCurrentSession()).thenReturn(session);
         when(session.createSQLQuery(queryCaptor.capture())).thenReturn(mockSqlQuery);
         when(mockSqlQuery.addScalar(any(String.class))).thenReturn(mockSqlQuery);
