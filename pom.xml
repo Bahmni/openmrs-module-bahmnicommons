@@ -7,7 +7,7 @@
     <groupId>org.bahmni.module</groupId>
     <artifactId>bahmni-commons</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>Bahmni Commons Module</name>
     <description>This module has extracted APIs from Bahmni Core, which are being used by bahmni appointments module.</description>
     <url>https://demo.mybahmni.org/bahmni/home/index.html</url>
