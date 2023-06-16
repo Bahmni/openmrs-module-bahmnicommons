@@ -22,6 +22,7 @@ public class PatientSearchParameters {
     private String[] addressSearchResultFields;
     private String[] patientSearchResultFields;
     private Boolean filterOnAllIdentifiers;
+    private String attributeToFilterOut;
 
 
 
@@ -64,6 +65,7 @@ public class PatientSearchParameters {
         this.setFilterPatientsByLocation(Boolean.valueOf(context.getParameter("filterPatientsByLocation")));
         this.setFilterOnAllIdentifiers(Boolean.valueOf(context.getParameter("filterOnAllIdentifiers")));
         this.setLoginLocationUuid(context.getParameter("loginLocationUuid"));
+        this.setAttributeToFilterOut(context.getParameter("attributeToFilterOut"));
     }
 
     private String[] getAddressConfigIfExists(Object addressConfig) {
@@ -188,5 +190,13 @@ public class PatientSearchParameters {
 
     public Boolean getFilterOnAllIdentifiers() {
         return filterOnAllIdentifiers;
+    }
+
+    public String getAttributeToFilterOut() {
+        return attributeToFilterOut;
+    }
+
+    public void setAttributeToFilterOut(String attributeToFilterOut) {
+        this.attributeToFilterOut = attributeToFilterOut;
     }
 }

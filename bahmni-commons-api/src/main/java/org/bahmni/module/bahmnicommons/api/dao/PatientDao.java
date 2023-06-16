@@ -15,7 +15,8 @@ public interface PatientDao {
                                                        String addressFieldName, String addressFieldValue, Integer length,
                                                        Integer offset, String[] customAttributeFields, String programAttributeFieldValue,
                                                        String programAttributeFieldName, String[] addressSearchResultFields,
-                                                       String[] patientSearchResultFields, String loginLocationUuid, Boolean filterPatientsByLocation, Boolean filterOnAllIdentifiers);
+                                                       String[] patientSearchResultFields, String loginLocationUuid, Boolean filterPatientsByLocation,
+                                                       Boolean filterOnAllIdentifiers, String attributeToFilterOut);
 
     public List<PatientResponse> getPatients(PatientSearchParameters searchParameters, Supplier<Location> visitLocation, Supplier<List<String>> configuredAddressFields);
 
