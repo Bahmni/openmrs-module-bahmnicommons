@@ -1,6 +1,7 @@
 package org.bahmni.module.bahmnicommons.api.service.impl;
 
 
+import org.bahmni.module.bahmnicommons.api.contract.patient.PatientSearchParameters;
 import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientConfigResponse;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
 import org.junit.Before;
@@ -66,5 +67,41 @@ public class BahmniPatientServiceImplTest {
         boolean shouldMatchExactPatientId = false;
         bahmniPatientService.get("partial_identifier", shouldMatchExactPatientId);
         verify(patientDao).getPatients("partial_identifier", shouldMatchExactPatientId);
+    }
+
+    @Test
+    public void shouldCallGetPatientsUsingLuceneSearch() throws Exception {
+        String[] addressResultFields = {"city_village"};
+        PatientSearchParameters searchParameter = new PatientSearchParameters();
+        searchParameter.setIdentifier("100010");
+        searchParameter.setName("");
+        searchParameter.setAddressFieldName("city_village");
+        searchParameter.setAddressFieldValue("");
+        searchParameter.setLength(100);
+        searchParameter.setStart(0);
+        searchParameter.setProgramAttributeFieldValue("");
+        searchParameter.setAddressSearchResultFields(addressResultFields);
+        searchParameter.setLoginLocationUuid("c36006e5-9fbb-4f20-866b-0ece245615a1");
+        searchParameter.setFilterPatientsByLocation(false);
+        searchParameter.setFilterOnAllIdentifiers(false);
+        searchParameter.setAttributeToFilterOut("filterAttribute");
+
+        bahmniPatientService.luceneSearch(searchParameter);
+        verify(patientDao, times(1)).getPatientsUsingLuceneSearch(searchParameter.getIdentifier(),
+                searchParameter.getName(),
+                searchParameter.getCustomAttribute(),
+                searchParameter.getAddressFieldName(),
+                searchParameter.getAddressFieldValue(),
+                searchParameter.getLength(),
+                searchParameter.getStart(),
+                searchParameter.getPatientAttributes(),
+                searchParameter.getProgramAttributeFieldValue(),
+                searchParameter.getProgramAttributeFieldName(),
+                searchParameter.getAddressSearchResultFields(),
+                searchParameter.getPatientSearchResultFields(),
+                searchParameter.getLoginLocationUuid(),
+                searchParameter.getFilterPatientsByLocation(),
+                searchParameter.getFilterOnAllIdentifiers(),
+                searchParameter.getAttributeToFilterOut());
     }
 }

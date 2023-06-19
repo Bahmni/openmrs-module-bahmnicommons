@@ -8,6 +8,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.openmrs.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -45,6 +46,13 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
     }
 
     @Test
+    public void shouldFilterOutPatientForPrimaryIdentifierIfFilterAttributeIsPresent() {
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("GAN200001", "", null, "city_village", "", 100, 0, null,"",null,addressResultFields,null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, false, "filterAttribute");
+        assertEquals(0, patients.size());
+    }
+
+    @Test
     public void shouldSearchByExactPatientIdentifierWhenLengthIsGreaterThanMaxNGramLength() {
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("GAN200004-2005-09-22-00-00", "", null, "city_village", "", 100, 0, null,"",null,addressResultFields,null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, false, "");
@@ -69,6 +77,16 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
         assertEquals("2006-01-18 00:00:00.0", patient.getDateCreated().toString());
         assertEquals(null, patient.getDeathDate());
         assertEquals("{\"National ID\" : \"NAT100010\"}", patient.getExtraIdentifiers());
+    }
+
+    @Test
+    public void shouldReturnPatientBasedOnIdentifier() {
+        List<Patient> patients = patientDao.getPatients("GAN200001", true);
+        assertEquals(1, patients.size());
+        patients = patientDao.getPatients("GAN200001", false);
+        assertEquals(1, patients.size());
+        patients = patientDao.getPatients("", true);
+        assertEquals(0, patients.size());
     }
 
     @Test
