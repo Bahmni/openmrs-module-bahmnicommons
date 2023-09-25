@@ -79,7 +79,7 @@ public class BahmniAppointmentsPatientSearchController extends BaseRestControlle
                 return patientResponse;
             }).collect(Collectors.toList());
             
-            AlreadyPaged alreadyPaged = new AlreadyPaged(requestContext, patientResponseList, false);
+            AlreadyPaged alreadyPaged = new AlreadyPaged(requestContext, patientResponseList, false, (long) patientResponseList.size());
             return new ResponseEntity(alreadyPaged,HttpStatus.OK);
         }catch (IllegalArgumentException e){
             return new ResponseEntity(RestUtil.wrapErrorResponse(e, e.getMessage()), HttpStatus.BAD_REQUEST);
