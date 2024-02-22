@@ -18,10 +18,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -77,6 +74,7 @@ public class PatientResponseMapperTest {
 
         Assert.assertEquals(patientResponse.getPersonId(), 12);
         Assert.assertEquals(patientResponse.getBirthDate().getTime(), 2000000l);
+        Assert.assertEquals(patientResponse.getAge(), "54");
         Assert.assertEquals(patientResponse.getUuid(), "someUUid");
         Assert.assertEquals(patientResponse.getIdentifier(), "FAN007");
         Assert.assertEquals(patientResponse.getExtraIdentifiers(), "{\"test\" : \"Extra009\"}");
@@ -146,5 +144,71 @@ public class PatientResponseMapperTest {
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, null, null, null);
         Assert.assertEquals(patientResponse.getActiveVisitUuid(),"someLocationUUid");
         Assert.assertEquals(patientResponse.getHasBeenAdmitted(), Boolean.FALSE);
+    }
+
+    @Test
+    public void shouldReturnBirthDateAsNullWhenBirthDateIsNotSet() {
+        PatientResponse patient = new PatientResponse();
+        Assert.assertNull(patient.getAge());
+    }
+
+    @Test
+    public void shouldReturnBirthDateWhenBirthDateIsSet() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -30);
+        Date birthDate = cal.getTime();
+        PatientResponse patient = new PatientResponse();
+        patient.setBirthDate(birthDate);
+        int expectedAge = 30;
+        Assert.assertEquals(Integer.toString(expectedAge), patient.getAge());
+    }
+
+    @Test
+    public void shouldReturnCorrectAgeWhenTodayIsBirthday() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -20);
+        Date birthDate = cal.getTime();
+        PatientResponse patient = new PatientResponse();
+        patient.setBirthDate(birthDate);
+        int expectedAge = 20;
+        Assert.assertEquals(Integer.toString(expectedAge), patient.getAge());
+    }
+
+    @Test
+    public void shouldReturnCorrectAgeWhenTodayIsBeforeBirthday() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -20);
+        cal.add(Calendar.DAY_OF_YEAR, 1);
+        Date birthDate = cal.getTime();
+        PatientResponse patient = new PatientResponse();
+        patient.setBirthDate(birthDate);
+        int expectedAge = 19;
+        Assert.assertEquals(Integer.toString(expectedAge), patient.getAge());
+    }
+    @Test
+    public void shouldReturnCorrectAgeWhenTodayIsBeforeBirthdayButNotBirthMonth() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -20);
+        cal.add(Calendar.MONTH, 1);
+        cal.add(Calendar.DAY_OF_MONTH, -1);
+        Date birthDate = cal.getTime();
+        PatientResponse patient = new PatientResponse();
+        patient.setBirthDate(birthDate);
+        int expectedAge = 19;
+        Assert.assertEquals(Integer.toString(expectedAge), patient.getAge());
+    }
+
+    @Test
+    public void shouldReturnDeathAgeIfPatientIsDeceased() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -20);
+        Date birthDate = cal.getTime();
+        cal.add(Calendar.YEAR, -1);
+        Date deathDate = cal.getTime();
+        PatientResponse patient = new PatientResponse();
+        patient.setBirthDate(birthDate);
+        patient.setDeathDate(deathDate);
+        int expectedAge = -1;
+        Assert.assertEquals(Integer.toString(expectedAge), patient.getAge());
     }
 }

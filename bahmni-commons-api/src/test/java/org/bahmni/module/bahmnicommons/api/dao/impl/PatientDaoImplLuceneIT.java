@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
     @Autowired
@@ -302,6 +303,25 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
         patients = patientDao.getPatientsUsingLuceneSearch("NAT100010", "uniqueStringSoNoResultsFromPatientNames", null, "city_village", "",
                 100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "");
         assertEquals(1, patients.size());
+    }
+
+    @Test
+    public void shouldSearchByAnyPatientFullName() {
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Horatio Peeter Sinha", "Horatio Peeter Sinha", null, "city_village", "",
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(1, patients.size());
+        PatientResponse patient = patients.get(0);
+        assertEquals("341b4e41-790c-484f-b6ed-71dc8da222db", patient.getUuid());
+        assertEquals("GAN200001", patient.getIdentifier());
+        assertEquals("Horatio", patient.getGivenName());
+        assertEquals("Peeter", patient.getMiddleName());
+        assertEquals("Sinha", patient.getFamilyName());
+        assertEquals("M", patient.getGender());
+        assertEquals("{\"city_village\" : \"Ramgarh\"}", patient.getAddressFieldValue());
+        assertEquals(null, patient.getDeathDate());
+        assertEquals("{\"National ID\" : \"NAT100010\"}", patient.getExtraIdentifiers());
     }
 
 }

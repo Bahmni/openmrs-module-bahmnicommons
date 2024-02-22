@@ -50,6 +50,6 @@ public class BahmniLocationSearchHandler implements SearchHandler{
         if("ANY".equals(operator)){
             locations = locationService.getLocationsHavingAnyTag(tags);
         }
-        return new AlreadyPaged<>(requestContext, locations, false);
+        return new AlreadyPaged<>(requestContext, locations, false, (long) locations.size());
     }
 }

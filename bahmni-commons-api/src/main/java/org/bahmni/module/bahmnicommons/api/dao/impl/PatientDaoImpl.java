@@ -14,6 +14,7 @@ import org.bahmni.module.bahmnicommons.api.contract.patient.search.PatientSearch
 import org.bahmni.module.bahmnicommons.api.visitlocation.BahmniVisitLocationServiceImpl;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
 import org.hibernate.SQLQuery;
+import org.hibernate.search.query.dsl.MustJunction;
 import org.openmrs.ProgramAttributeType;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -182,11 +183,27 @@ public class PatientDaoImpl implements PatientDao {
     private List<PersonName> getPatientsByName(String name, Integer offset, Integer length) {
         FullTextSession fullTextSession = Search.getFullTextSession(sessionFactory.getCurrentSession());
         QueryBuilder queryBuilder = fullTextSession.getSearchFactory().buildQueryBuilder().forEntity(PersonName.class).get();
-        name = name.replace('%', '*');
-
         org.apache.lucene.search.Query nonVoidedNames = queryBuilder.keyword().onField("voided").matching(false).createQuery();
         org.apache.lucene.search.Query nonVoidedPersons = queryBuilder.keyword().onField("person.voided").matching(false).createQuery();
 
+
+        MustJunction mustJunction = queryBuilder.bool()
+                .must(nonVoidedNames)
+                .must(nonVoidedPersons);
+        String[] names = name.trim().split(" ");
+        for(int i=0; i<names.length;i++) {
+            BooleanJunction booleanJunction = queryInAllNameTypes(names[i].replace('%', '*'), queryBuilder);
+            mustJunction.must(booleanJunction.createQuery());
+        }
+
+        org.apache.lucene.search.Query booleanQuery =mustJunction.createQuery();
+                FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(booleanQuery, PersonName.class);
+        fullTextQuery.setFirstResult(offset);
+        fullTextQuery.setMaxResults(length);
+        return (List<PersonName>) fullTextQuery.list();
+    }
+
+    private BooleanJunction queryInAllNameTypes(String name, QueryBuilder queryBuilder) {
         List<String> patientNames = getPatientNames();
 
         BooleanJunction nameShouldJunction = queryBuilder.bool();
@@ -195,16 +212,7 @@ public class PatientDaoImpl implements PatientDao {
                     .onField(patientName).matching("*" + name.toLowerCase() + "*").createQuery();
             nameShouldJunction.should(nameQuery);
         }
-
-        org.apache.lucene.search.Query booleanQuery = queryBuilder.bool()
-                .must(nonVoidedNames)
-                .must(nonVoidedPersons)
-                .must(nameShouldJunction.createQuery())
-                .createQuery();
-        FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(booleanQuery, PersonName.class);
-        fullTextQuery.setFirstResult(offset);
-        fullTextQuery.setMaxResults(length);
-        return (List<PersonName>) fullTextQuery.list();
+        return nameShouldJunction;
     }
 
     private List<String> getPatientNames() {

@@ -47,7 +47,7 @@ public class BahmniPatientSearchController extends BaseRestController {
         PatientSearchParameters searchParameters = new PatientSearchParameters(requestContext);
         try {
             List<PatientResponse> patients = bahmniPatientService.search(searchParameters);
-            AlreadyPaged alreadyPaged = new AlreadyPaged(requestContext, patients, false);
+            AlreadyPaged alreadyPaged = new AlreadyPaged(requestContext, patients, false, (long) patients.size());
             return new ResponseEntity(alreadyPaged,HttpStatus.OK);
         }catch (IllegalArgumentException e){
             return new ResponseEntity(RestUtil.wrapErrorResponse(e, e.getMessage()), HttpStatus.BAD_REQUEST);
@@ -62,7 +62,7 @@ public class BahmniPatientSearchController extends BaseRestController {
         PatientSearchParameters searchParameters = new PatientSearchParameters(requestContext);
         try {
             List<PatientResponse> patients = bahmniPatientService.luceneSearch(searchParameters);
-            AlreadyPaged alreadyPaged = new AlreadyPaged(requestContext, patients, false);
+            AlreadyPaged alreadyPaged = new AlreadyPaged(requestContext, patients, false, (long) patients.size());
             return new ResponseEntity(alreadyPaged,HttpStatus.OK);
         }catch (IllegalArgumentException e){
             return new ResponseEntity(RestUtil.wrapErrorResponse(e, e.getMessage()), HttpStatus.BAD_REQUEST);
