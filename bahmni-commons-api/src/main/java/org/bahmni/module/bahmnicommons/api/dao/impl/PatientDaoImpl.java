@@ -121,7 +121,8 @@ public class PatientDaoImpl implements PatientDao {
                                                               Integer offset, String[] customAttributeFields, String programAttributeFieldValue,
                                                               String programAttributeFieldName, String[] addressSearchResultFields,
                                                               String[] patientSearchResultFields, String loginLocationUuid,
-                                                              Boolean filterPatientsByLocation, Boolean filterOnAllIdentifiers) {
+                                                              Boolean filterPatientsByLocation, Boolean filterOnAllIdentifiers,
+                                                              String attributeToFilterOut, String attributeValueToFilterOut) {
 
         validateSearchParams(customAttributeFields, programAttributeFieldName, addressFieldName);
 
@@ -143,7 +144,8 @@ public class PatientDaoImpl implements PatientDao {
                     .map(pName -> {
                         Person person = pName.getPerson();
                         Patient patient = Context.getPatientService().getPatient(person.getPersonId());
-                        if (patient != null && patient.getPatientId() != null) {
+                        Boolean filterOutPatient = shouldExcludePatient(attributeToFilterOut, attributeValueToFilterOut, patient);
+                        if (patient != null && patient.getPatientId() != null && !filterOutPatient) {
                             if (!uniquePatientIds.contains(patient.getPatientId())) {
                                 PatientResponse patientResponse = patientResponseMapper.map(patient, loginLocationUuid, patientSearchResultFields,
                                         addressSearchResultFields, programAttributes.get(patient.getPatientId()));
@@ -159,7 +161,8 @@ public class PatientDaoImpl implements PatientDao {
         patientResponses.addAll(patientIdentifiers.stream()
                 .map(patientIdentifier -> {
                     Patient patient = patientIdentifier.getPatient();
-                    if (patient != null && patient.getPatientId() != null && !uniquePatientIds.contains(patient.getPatientId())) {
+                    Boolean filterOutPatient = shouldExcludePatient(attributeToFilterOut, attributeValueToFilterOut, patient);
+                    if (patient != null && patient.getPatientId() != null && !uniquePatientIds.contains(patient.getPatientId()) && !filterOutPatient) {
                         PatientResponse patientResponse = patientResponseMapper.map(patient, loginLocationUuid, patientSearchResultFields, addressSearchResultFields,
                                 programAttributes.get(patient.getPatientId()));
                         uniquePatientIds.add(patient.getPatientId());
@@ -169,6 +172,13 @@ public class PatientDaoImpl implements PatientDao {
                 }).filter(Objects::nonNull)
                 .collect(toList()));
         return patientResponses;
+    }
+
+    private Boolean shouldExcludePatient(String attributeType, String attributeValue, Patient patient) {
+        if(org.apache.commons.lang.StringUtils.isNotBlank(attributeType) && patient.getAttribute(attributeType) != null) {
+            return patient.getAttribute(attributeType).getValue().equalsIgnoreCase(attributeValue);
+        }
+        return false;
     }
 
     private List<PersonName> getPatientsByName(String name, Integer offset, Integer length) {

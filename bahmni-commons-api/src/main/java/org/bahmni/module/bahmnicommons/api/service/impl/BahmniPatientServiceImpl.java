@@ -80,7 +80,10 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
                 searchParameters.getAddressSearchResultFields(),
                 searchParameters.getPatientSearchResultFields(),
                 searchParameters.getLoginLocationUuid(),
-                searchParameters.getFilterPatientsByLocation(), searchParameters.getFilterOnAllIdentifiers());
+                searchParameters.getFilterPatientsByLocation(),
+                searchParameters.getFilterOnAllIdentifiers(),
+                searchParameters.getAttributeToFilterOut(),
+                searchParameters.getAttributeValueToFilterOut());
     }
 
     @Override
