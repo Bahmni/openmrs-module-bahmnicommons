@@ -57,6 +57,19 @@ public class PatientDaoImpl implements PatientDao {
         this.sessionFactory = sessionFactory;
     }
 
+    enum LuceneFilter {
+        EXACT("Exact"),
+        START("Start"),
+        ANYWHERE("Anywhere"),
+        SOUNDEX("Soundex");
+
+        public final String label;
+
+        private LuceneFilter(String label) {
+            this.label = label;
+        }
+    }
+
     private List<String> patientAddressFields = Arrays.asList("country", "state_province", "county_district", "city_village",
             "postal_code", "address1", "address2", "address3",
             "address4", "address5", "address6", "address7", "address8",
@@ -195,9 +208,16 @@ public class PatientDaoImpl implements PatientDao {
     }
 
     private BooleanJunction queryInAllNameTypes(String name, QueryBuilder queryBuilder) {
-        List<String> patientNames = getPatientNames();
-
         BooleanJunction nameShouldJunction = queryBuilder.bool();
+        if(name.length() == 1) {
+            List<String> patientNames = getPatientNames(LuceneFilter.EXACT.label);
+            for (String patientName : patientNames) {
+                org.apache.lucene.search.Query charQuery = queryBuilder.keyword()
+                        .onField(patientName).matching( name.toLowerCase() ).createQuery();
+                nameShouldJunction.should(charQuery);
+            }
+        }
+        List<String> patientNames = getPatientNames(LuceneFilter.ANYWHERE.label);
         for (String patientName : patientNames) {
             org.apache.lucene.search.Query nameQuery = queryBuilder.keyword().wildcard()
                     .onField(patientName).matching("*" + name.toLowerCase() + "*").createQuery();
@@ -206,11 +226,12 @@ public class PatientDaoImpl implements PatientDao {
         return nameShouldJunction;
     }
 
-    private List<String> getPatientNames() {
+    private List<String> getPatientNames(String filter) {
         List<String> patientNames = new ArrayList<>();
-        patientNames.add("givenNameAnywhere");
-        patientNames.add("middleNameAnywhere");
-        patientNames.add("familyNameAnywhere");
+        List<String> patientNameFields = Arrays.asList("givenName","middleName","familyName");
+        for (String patientNameField: patientNameFields){
+            patientNames.add(patientNameField+filter);
+        }
         return patientNames;
     }
 

@@ -306,4 +306,81 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
         assertEquals("{\"National ID\" : \"NAT100010\"}", patient.getExtraIdentifiers());
     }
 
+    @Test
+    public void shouldSearchAnyPatientWithSingleCharacterFirstName() {
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("R Dev Burman", "R Dev Burman", null, "city_village", null,
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(1, patients.size());
+        PatientResponse patient = patients.get(0);
+        assertEquals("8387b8b6-9142-49da-8ac7-6e2b9a8dba21", patient.getUuid());
+        assertEquals("PAN200062", patient.getIdentifier());
+        assertEquals("R", patient.getGivenName());
+        assertEquals("Dev", patient.getMiddleName());
+        assertEquals("Burman", patient.getFamilyName());
+        assertEquals("M", patient.getGender());
+        assertEquals("{\"city_village\" : \"Ramgarh\"}", patient.getAddressFieldValue());
+        assertNull(patient.getDeathDate());
+        assertNull(patient.getExtraIdentifiers());
+    }
+
+    @Test
+    public void shouldSearchAnyPatientWithSingleCharacterSecondName() {
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Sachin D Burman", "Sachin D Burman", null, "city_village", null,
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(1, patients.size());
+        PatientResponse patient = patients.get(0);
+        assertEquals("9f5fdc74-d61b-11ee-a506-0242ac120002", patient.getUuid());
+        assertEquals("PAN200063", patient.getIdentifier());
+        assertEquals("Sachin", patient.getGivenName());
+        assertEquals("D", patient.getMiddleName());
+        assertEquals("Burman", patient.getFamilyName());
+        assertEquals("M", patient.getGender());
+        assertEquals("{\"city_village\" : \"Ramgarh\"}", patient.getAddressFieldValue());
+        assertNull(patient.getDeathDate());
+        assertNull(patient.getExtraIdentifiers());
+    }
+
+    @Test
+    public void shouldSearchAnyPatientWithSingleCharacterLastName() {
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Rahul Dev B", "Rahul Dev B", null, "city_village", null,
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(1, patients.size());
+        PatientResponse patient = patients.get(0);
+        assertEquals("a797b93e-d61b-11ee-a506-0242ac120002", patient.getUuid());
+        assertEquals("PAN200064", patient.getIdentifier());
+        assertEquals("Rahul", patient.getGivenName());
+        assertEquals("Dev", patient.getMiddleName());
+        assertEquals("B", patient.getFamilyName());
+        assertEquals("M", patient.getGender());
+        assertEquals("{\"city_village\" : \"Ramgarh\"}", patient.getAddressFieldValue());
+        assertNull(patient.getDeathDate());
+        assertNull(patient.getExtraIdentifiers());
+    }
+
+    @Test
+    public void shouldSearchAllPatientsWithSimilarFirstName() {
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("F Scott Fitzgerald", "F Scott Fitzgerald", null, "city_village", null,
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(2, patients.size());
+        PatientResponse patient1 = patients.get(0);
+        assertEquals("6e318c2a-d624-11ee-a506-0242ac120002", patient1.getUuid());
+        assertEquals("PAN200066", patient1.getIdentifier());
+        assertEquals("F", patient1.getGivenName());
+        assertEquals("Scott", patient1.getMiddleName());
+        assertEquals("Fitzgerald", patient1.getFamilyName());
+        PatientResponse patient2 = patients.get(1);
+        assertEquals("6817dcdc-d623-11ee-a506-0242ac120002", patient2.getUuid());
+        assertEquals("PAN200065", patient2.getIdentifier());
+        assertEquals("Francis", patient2.getGivenName());
+        assertEquals("Scott", patient2.getMiddleName());
+        assertEquals("Fitzgerald", patient2.getFamilyName());
+    }
 }
