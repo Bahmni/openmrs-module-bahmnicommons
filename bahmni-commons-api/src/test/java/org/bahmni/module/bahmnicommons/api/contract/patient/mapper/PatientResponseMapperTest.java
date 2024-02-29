@@ -203,12 +203,13 @@ public class PatientResponseMapperTest {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.YEAR, -20);
         Date birthDate = cal.getTime();
-        cal.add(Calendar.YEAR, -1);
+        // The year of death is deliberately set to four years ago to account for leap years.
+        cal.add(Calendar.YEAR, -4);
         Date deathDate = cal.getTime();
         PatientResponse patient = new PatientResponse();
         patient.setBirthDate(birthDate);
         patient.setDeathDate(deathDate);
-        int expectedAge = -1;
+        int expectedAge = -4;
         Assert.assertEquals(Integer.toString(expectedAge), patient.getAge());
     }
 }
