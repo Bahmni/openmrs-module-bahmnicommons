@@ -3,10 +3,8 @@ package org.bahmni.module.bahmnicommons.api.dao.impl;
 import org.bahmni.module.bahmnicommons.api.BaseIntegrationTest;
 import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientResponse;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,6 +18,10 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
     private PatientDao patientDao;
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
+
+    @Rule
+    public final EnvironmentVariables environmentVariables
+            = new EnvironmentVariables();
 
     @Before
     public void setUp() throws Exception {
@@ -370,17 +372,71 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
                 100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
         assertNotNull(patients);
         assertEquals(2, patients.size());
+        PatientResponse patientResponse1 = patients.get(0);
+        assertEquals("6817dcdc-d623-11ee-a506-0242ac120002", patientResponse1.getUuid());
+        assertEquals("PAN200065", patientResponse1.getIdentifier());
+        assertEquals("Francis", patientResponse1.getGivenName());
+        assertEquals("Scott", patientResponse1.getMiddleName());
+        assertEquals("Fitzgerald", patientResponse1.getFamilyName());
+        PatientResponse patientResponse2 = patients.get(1);
+        assertEquals("6e318c2a-d624-11ee-a506-0242ac120002", patientResponse2.getUuid());
+        assertEquals("PAN200066", patientResponse2.getIdentifier());
+        assertEquals("F", patientResponse2.getGivenName());
+        assertEquals("Scott", patientResponse2.getMiddleName());
+        assertEquals("Fitzgerald", patientResponse2.getFamilyName());
+    }
+
+    @Test
+    public void shouldSearchPatientsWithExactMatchWhenModeIsEXACT() throws Exception {
+        environmentVariables.set("LUCENE_MATCH_TYPE","EXACT");
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("F Scott Fitzgerald", "F Scott Fitzgerald", null, "city_village", null,
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(1, patients.size());
+        PatientResponse patientResponse = patients.get(0);
+        assertEquals("6e318c2a-d624-11ee-a506-0242ac120002", patientResponse.getUuid());
+        assertEquals("PAN200066", patientResponse.getIdentifier());
+        assertEquals("F", patientResponse.getGivenName());
+        assertEquals("Scott", patientResponse.getMiddleName());
+        assertEquals("Fitzgerald", patientResponse.getFamilyName());
+    }
+
+    @Test
+    public void shouldSearchPatientsWithMatchAnywhereWhenModeIsANYWHERE() throws Exception {
+        environmentVariables.set("LUCENE_MATCH_TYPE","ANYWHERE");
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Niel", "Niel", null, "city_village", null,
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(2, patients.size());
         PatientResponse patient1 = patients.get(0);
-        assertEquals("6e318c2a-d624-11ee-a506-0242ac120002", patient1.getUuid());
-        assertEquals("PAN200066", patient1.getIdentifier());
-        assertEquals("F", patient1.getGivenName());
-        assertEquals("Scott", patient1.getMiddleName());
-        assertEquals("Fitzgerald", patient1.getFamilyName());
+        assertEquals("a83ae586-d6bc-11ee-a506-0242ac120002", patient1.getUuid());
+        assertEquals("PAN200067", patient1.getIdentifier());
+        assertEquals("Daniel", patient1.getGivenName());
+        assertEquals("Day", patient1.getMiddleName());
+        assertEquals("Lewis", patient1.getFamilyName());
         PatientResponse patient2 = patients.get(1);
-        assertEquals("6817dcdc-d623-11ee-a506-0242ac120002", patient2.getUuid());
-        assertEquals("PAN200065", patient2.getIdentifier());
-        assertEquals("Francis", patient2.getGivenName());
-        assertEquals("Scott", patient2.getMiddleName());
-        assertEquals("Fitzgerald", patient2.getFamilyName());
+        assertEquals("8bf18320-d6bd-11ee-a506-0242ac120002", patient2.getUuid());
+        assertEquals("PAN200068", patient2.getIdentifier());
+        assertEquals("Nielsen", patient2.getGivenName());
+        assertEquals("William", patient2.getMiddleName());
+        assertEquals("Leslie", patient2.getFamilyName());
+    }
+
+    @Test
+    public void shouldSearchPatientsNameWhichStartsWithSearchTermWhenModeIsSTART() throws Exception {
+        environmentVariables.set("LUCENE_MATCH_TYPE","START");
+        String[] addressResultFields = {"city_village"};
+        List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Niel", "Niel", null, "city_village", null,
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+        assertNotNull(patients);
+        assertEquals(1, patients.size());
+        PatientResponse patientResponse = patients.get(0);
+        assertEquals("8bf18320-d6bd-11ee-a506-0242ac120002", patientResponse.getUuid());
+        assertEquals("PAN200068", patientResponse.getIdentifier());
+        assertEquals("Nielsen", patientResponse.getGivenName());
+        assertEquals("William", patientResponse.getMiddleName());
+        assertEquals("Leslie", patientResponse.getFamilyName());
     }
 }

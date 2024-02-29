@@ -58,15 +58,14 @@ public class PatientDaoImpl implements PatientDao {
     }
 
     enum LuceneFilter {
-        EXACT("Exact"),
-        START("Start"),
         ANYWHERE("Anywhere"),
-        SOUNDEX("Soundex");
+        EXACT("Exact"),
+        START("Start");
 
-        public final String label;
+        public final String matchType;
 
-        private LuceneFilter(String label) {
-            this.label = label;
+        private LuceneFilter(String matchType) {
+            this.matchType = matchType;
         }
     }
 
@@ -196,34 +195,55 @@ public class PatientDaoImpl implements PatientDao {
                 .must(nonVoidedPersons);
         String[] names = name.trim().split(" ");
         for(int i=0; i<names.length;i++) {
-            BooleanJunction booleanJunction = queryInAllNameTypes(names[i].replace('%', '*'), queryBuilder);
+            BooleanJunction<?> booleanJunction = queryInAllNameTypes(names[i].replace('%', '*'), queryBuilder);
             mustJunction.must(booleanJunction.createQuery());
         }
 
         org.apache.lucene.search.Query booleanQuery =mustJunction.createQuery();
-                FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(booleanQuery, PersonName.class);
+        FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(booleanQuery, PersonName.class);
         fullTextQuery.setFirstResult(offset);
         fullTextQuery.setMaxResults(length);
         return (List<PersonName>) fullTextQuery.list();
     }
 
-    private BooleanJunction queryInAllNameTypes(String name, QueryBuilder queryBuilder) {
-        BooleanJunction nameShouldJunction = queryBuilder.bool();
+    private BooleanJunction<?> queryInAllNameTypes(String name, QueryBuilder queryBuilder) {
+        BooleanJunction<?> nameShouldJunction = queryBuilder.bool();
         if(name.length() == 1) {
-            List<String> patientNames = getPatientNames(LuceneFilter.EXACT.label);
-            for (String patientName : patientNames) {
-                org.apache.lucene.search.Query charQuery = queryBuilder.keyword()
-                        .onField(patientName).matching( name.toLowerCase() ).createQuery();
-                nameShouldJunction.should(charQuery);
-            }
+            List<String> patientNames = getPatientNames(LuceneFilter.EXACT.matchType);
+            updateNameQueryByFilter(nameShouldJunction, name, queryBuilder, patientNames, "", "");
         }
-        List<String> patientNames = getPatientNames(LuceneFilter.ANYWHERE.label);
+        return filterPatientNames(nameShouldJunction, name, queryBuilder);
+    }
+
+    public BooleanJunction<?> filterPatientNames(BooleanJunction<?> nameShouldJunction, String name, QueryBuilder queryBuilder) {
+        String luceneFilter = System.getenv("LUCENE_MATCH_TYPE") == null? "ANYWHERE":System.getenv("LUCENE_MATCH_TYPE");
+        List<String> patientNames;
+        String wildcardPrefix = "";
+        String wildcardSuffix = "";
+        switch (luceneFilter.toUpperCase()) {
+            case "EXACT":
+                patientNames = getPatientNames(LuceneFilter.EXACT.matchType);
+                break;
+            case "START":
+                patientNames = getPatientNames(LuceneFilter.START.matchType);
+                wildcardSuffix = "*";
+                break;
+            default:
+                patientNames = getPatientNames(LuceneFilter.ANYWHERE.matchType);
+                wildcardPrefix = "*";
+                wildcardSuffix = "*";
+                break;
+        }
+        updateNameQueryByFilter(nameShouldJunction, name, queryBuilder, patientNames, wildcardPrefix, wildcardSuffix);
+        return nameShouldJunction;
+    }
+
+    private static void updateNameQueryByFilter(BooleanJunction<?> nameShouldJunction, String name, QueryBuilder queryBuilder, List<String> patientNames, String wildcardPrefix, String wildcardSuffix) {
         for (String patientName : patientNames) {
             org.apache.lucene.search.Query nameQuery = queryBuilder.keyword().wildcard()
-                    .onField(patientName).matching("*" + name.toLowerCase() + "*").createQuery();
+                    .onField(patientName).matching(wildcardPrefix + name.toLowerCase() + wildcardSuffix).createQuery();
             nameShouldJunction.should(nameQuery);
         }
-        return nameShouldJunction;
     }
 
     private List<String> getPatientNames(String filter) {
@@ -252,7 +272,7 @@ public class PatientDaoImpl implements PatientDao {
 
         List<String> identifierTypeNames = getIdentifierTypeNames(filterOnAllIdentifiers);
 
-        BooleanJunction identifierTypeShouldJunction = queryBuilder.bool();
+        BooleanJunction<?> identifierTypeShouldJunction = queryBuilder.bool();
         for (String identifierTypeName : identifierTypeNames) {
             org.apache.lucene.search.Query identifierTypeQuery = queryBuilder.phrase().onField("identifierType.name").sentence(identifierTypeName).createQuery();
             identifierTypeShouldJunction.should(identifierTypeQuery);
