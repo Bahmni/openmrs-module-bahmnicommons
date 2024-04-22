@@ -200,15 +200,16 @@ public class PatientResponseMapperTest {
 
     @Test
     public void shouldReturnDeathAgeIfPatientIsDeceased() {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.YEAR, -20);
-        Date birthDate = cal.getTime();
-        cal.add(Calendar.YEAR, -1);
-        Date deathDate = cal.getTime();
+        Calendar birthCal = Calendar.getInstance();
+        birthCal.set(2000, Calendar.JANUARY, 1);
+        Date birthDate = birthCal.getTime();
+        Calendar deathCal = Calendar.getInstance();
+        deathCal.set(2020, Calendar.JANUARY, 1);
+        Date deathDate = deathCal.getTime();
         PatientResponse patient = new PatientResponse();
         patient.setBirthDate(birthDate);
         patient.setDeathDate(deathDate);
-        int expectedAge = -1;
+        int expectedAge = 20;
         Assert.assertEquals(Integer.toString(expectedAge), patient.getAge());
     }
 }
