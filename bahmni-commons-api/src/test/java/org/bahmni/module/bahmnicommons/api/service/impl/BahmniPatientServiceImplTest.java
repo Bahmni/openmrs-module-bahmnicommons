@@ -85,6 +85,7 @@ public class BahmniPatientServiceImplTest {
         searchParameter.setFilterPatientsByLocation(false);
         searchParameter.setFilterOnAllIdentifiers(false);
         searchParameter.setAttributeToFilterOut("filterAttribute");
+        searchParameter.setAttributeValueToFilterOut("false");
 
         bahmniPatientService.luceneSearch(searchParameter);
         verify(patientDao, times(1)).getPatientsUsingLuceneSearch(searchParameter.getIdentifier(),
@@ -102,6 +103,7 @@ public class BahmniPatientServiceImplTest {
                 searchParameter.getLoginLocationUuid(),
                 searchParameter.getFilterPatientsByLocation(),
                 searchParameter.getFilterOnAllIdentifiers(),
-                searchParameter.getAttributeToFilterOut());
+                searchParameter.getAttributeToFilterOut(),
+                searchParameter.getAttributeValueToFilterOut());
     }
 }
