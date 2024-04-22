@@ -27,6 +27,7 @@ public class PatientSearchParametersBuilder {
     private Integer length;
 
     private String attributeToFilterOut;
+    private String attributeValueToFilterOut;
 
     public static PatientSearchParametersBuilder defaultValues() {
         PatientSearchParametersBuilder pspb = new PatientSearchParametersBuilder();
@@ -53,6 +54,7 @@ public class PatientSearchParametersBuilder {
         pspb.length = 100;
 
         pspb.attributeToFilterOut = "";
+        pspb.attributeValueToFilterOut = "";
         return pspb;
     }
 
@@ -136,6 +138,10 @@ public class PatientSearchParametersBuilder {
         this.attributeToFilterOut = attributeToFilterOut;
         return this;
     }
+    public PatientSearchParametersBuilder withAttributeValueToFilterOut(String attributeValueToFilterOut) {
+        this.attributeValueToFilterOut = attributeValueToFilterOut;
+        return this;
+    }
 
     public PatientSearchParameters build() {
         PatientSearchParameters searchParameters = new PatientSearchParameters();
@@ -155,6 +161,7 @@ public class PatientSearchParametersBuilder {
         searchParameters.setFilterPatientsByLocation(this.filterPatientsByLocation);
         searchParameters.setFilterOnAllIdentifiers(this.filterOnAllIdentifiers);
         searchParameters.setAttributeToFilterOut(this.attributeToFilterOut);
+        searchParameters.setAttributeValueToFilterOut(this.attributeValueToFilterOut);
         return searchParameters;
     }
 }

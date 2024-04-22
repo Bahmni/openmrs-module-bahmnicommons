@@ -330,7 +330,7 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
     public void shouldSearchAnyPatientWithSingleCharacterFirstName() {
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("R Dev Burman", "R Dev Burman", null, "city_village", null,
-                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(1, patients.size());
         PatientResponse patient = patients.get(0);
@@ -349,7 +349,7 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
     public void shouldSearchAnyPatientWithSingleCharacterSecondName() {
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Sachin D Burman", "Sachin D Burman", null, "city_village", null,
-                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(1, patients.size());
         PatientResponse patient = patients.get(0);
@@ -368,7 +368,7 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
     public void shouldSearchAnyPatientWithSingleCharacterLastName() {
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Rahul Dev B", "Rahul Dev B", null, "city_village", null,
-                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(1, patients.size());
         PatientResponse patient = patients.get(0);
@@ -387,7 +387,7 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
     public void shouldSearchAllPatientsWithSimilarFirstName() {
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("F Scott Fitzgerald", "F Scott Fitzgerald", null, "city_village", null,
-                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(2, patients.size());
         PatientResponse patientResponse1 = patients.get(0);
@@ -409,7 +409,7 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
         environmentVariables.set("LUCENE_MATCH_TYPE","EXACT");
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("F Scott Fitzgerald", "F Scott Fitzgerald", null, "city_village", null,
-                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(1, patients.size());
         PatientResponse patientResponse = patients.get(0);
@@ -425,7 +425,7 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
         environmentVariables.set("LUCENE_MATCH_TYPE","ANYWHERE");
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Niel", "Niel", null, "city_village", null,
-                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(2, patients.size());
         PatientResponse patient1 = patients.get(0);
@@ -447,7 +447,7 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
         environmentVariables.set("LUCENE_MATCH_TYPE","START");
         String[] addressResultFields = {"city_village"};
         List<PatientResponse> patients = patientDao.getPatientsUsingLuceneSearch("Niel", "Niel", null, "city_village", null,
-                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true);
+                100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(1, patients.size());
         PatientResponse patientResponse = patients.get(0);
