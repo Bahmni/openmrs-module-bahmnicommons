@@ -46,7 +46,6 @@
         <serializationXstreamModuleVersion>0.2.15</serializationXstreamModuleVersion>
         <lombokVersion>1.16.0</lombokVersion>
         <idgenVersion>4.7.0</idgenVersion>
-        <auditLogVersion>1.3.0-SNAPSHOT</auditLogVersion>
         <javaxMail.version>1.6.2</javaxMail.version>
         <!--test dependencies-->
         <junitVersion>4.13</junitVersion>
