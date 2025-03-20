@@ -67,17 +67,21 @@ public class PatientResponseMapperTest {
 
     @Test
     public void shouldMapPatientBasicDetails() throws Exception {
-        patient.setBirthdate(new Date(2000000l));
+        int expectedAge = 54;
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -expectedAge);
+        Date birthDate = cal.getTime();
+        patient.setBirthdate(birthDate);
         patient.setUuid("someUUid");
 
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, null, null, null);
 
-        Assert.assertEquals(patientResponse.getPersonId(), 12);
-        Assert.assertEquals(patientResponse.getBirthDate().getTime(), 2000000l);
-        Assert.assertEquals(patientResponse.getAge(), "54");
-        Assert.assertEquals(patientResponse.getUuid(), "someUUid");
-        Assert.assertEquals(patientResponse.getIdentifier(), "FAN007");
-        Assert.assertEquals(patientResponse.getExtraIdentifiers(), "{\"test\" : \"Extra009\"}");
+        Assert.assertEquals(12, patientResponse.getPersonId());
+        Assert.assertEquals(birthDate, patientResponse.getBirthDate());
+        Assert.assertEquals(Integer.toString(expectedAge), patientResponse.getAge());
+        Assert.assertEquals("someUUid", patientResponse.getUuid());
+        Assert.assertEquals("FAN007", patientResponse.getIdentifier());
+        Assert.assertEquals("{\"test\" : \"Extra009\"}", patientResponse.getExtraIdentifiers());
     }
 
     @Test
@@ -88,7 +92,7 @@ public class PatientResponseMapperTest {
         String[] patientResultFields = {"givenNameLocal"};
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, patientResultFields, null, null);
 
-        Assert.assertEquals(patientResponse.getCustomAttribute(),"{\"givenNameLocal\" : \"someName\"}");
+        Assert.assertEquals("{\"givenNameLocal\" : \"someName\"}", patientResponse.getCustomAttribute());
     }
 
     @Test
@@ -113,7 +117,7 @@ public class PatientResponseMapperTest {
 
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, patientResultFields, null, null);
 
-        Assert.assertEquals(patientResponse.getCustomAttribute(),"{\"occupation\" : \"FSN\"}");
+        Assert.assertEquals("{\"occupation\" : \"FSN\"}", patientResponse.getCustomAttribute());
     }
 
     @Test
@@ -124,7 +128,7 @@ public class PatientResponseMapperTest {
         String[] patientResultFields = {"familyNameLocal"};
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, patientResultFields, null, null);
 
-        Assert.assertEquals(patientResponse.getCustomAttribute(),"{\"familyNameLocal\" : \"so\\\"me\\\\Name\"}");
+        Assert.assertEquals("{\"familyNameLocal\" : \"so\\\"me\\\\Name\"}", patientResponse.getCustomAttribute());
     }
 
     @Test
@@ -134,7 +138,7 @@ public class PatientResponseMapperTest {
         patient.setAddresses(Sets.newSet(personAddress));
 
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, null, new String[]{"address_2"}, null);
-        Assert.assertEquals(patientResponse.getAddressFieldValue(),"{\"address_2\" : \"someAddress\"}");
+        Assert.assertEquals("{\"address_2\" : \"someAddress\"}", patientResponse.getAddressFieldValue());
 
     }
 
@@ -142,8 +146,8 @@ public class PatientResponseMapperTest {
     public void shouldMapVisitSummary() throws Exception {
 
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, null, null, null);
-        Assert.assertEquals(patientResponse.getActiveVisitUuid(),"someLocationUUid");
-        Assert.assertEquals(patientResponse.getHasBeenAdmitted(), Boolean.FALSE);
+        Assert.assertEquals("someLocationUUid", patientResponse.getActiveVisitUuid());
+        Assert.assertEquals(Boolean.FALSE, patientResponse.getHasBeenAdmitted());
     }
 
     @Test
