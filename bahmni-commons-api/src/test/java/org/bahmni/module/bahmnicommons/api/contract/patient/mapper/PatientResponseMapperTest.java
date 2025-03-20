@@ -67,14 +67,18 @@ public class PatientResponseMapperTest {
 
     @Test
     public void shouldMapPatientBasicDetails() throws Exception {
-        patient.setBirthdate(new Date(2000000l));
+        int expectedAge = 54;
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -expectedAge);
+        Date birthDate = cal.getTime();
+        patient.setBirthdate(birthDate);
         patient.setUuid("someUUid");
 
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, null, null, null);
 
         Assert.assertEquals(patientResponse.getPersonId(), 12);
-        Assert.assertEquals(patientResponse.getBirthDate().getTime(), 2000000l);
-        Assert.assertEquals(patientResponse.getAge(), "54");
+        Assert.assertEquals(patientResponse.getBirthDate(), birthDate);
+        Assert.assertEquals(patientResponse.getAge(), Integer.toString(expectedAge));
         Assert.assertEquals(patientResponse.getUuid(), "someUUid");
         Assert.assertEquals(patientResponse.getIdentifier(), "FAN007");
         Assert.assertEquals(patientResponse.getExtraIdentifiers(), "{\"test\" : \"Extra009\"}");
