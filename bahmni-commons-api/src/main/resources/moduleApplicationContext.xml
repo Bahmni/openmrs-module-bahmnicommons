@@ -69,6 +69,8 @@
         </property>
     </bean>
 
+    <bean name="appContext" class="org.bahmni.module.bahmnicommons.api.context.impl.OpenMRSAppContext">
+    </bean>
 
     <bean id="moduleAppConfigService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager">
@@ -76,6 +78,8 @@
         </property>
         <property name="target">
             <bean class="org.bahmni.module.bahmnicommons.api.service.impl.ModuleAppConfigServiceImpl">
+                <constructor-arg ref="adminService"/>
+                <constructor-arg ref="appContext"/>
             </bean>
         </property>
         <property name="preInterceptors">

@@ -1,10 +1,11 @@
 package org.bahmni.module.bahmnicommons.api.service.impl;
 
 import org.bahmni.module.bahmnicommons.api.configuration.ModuleAppConfig;
+import org.bahmni.module.bahmnicommons.api.context.AppContext;
 import org.bahmni.module.bahmnicommons.api.service.ModuleAppConfigService;
 import org.openmrs.api.AdministrationService;
-import org.openmrs.api.context.Context;
 import org.openmrs.module.webservices.rest.SimpleObject;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
@@ -13,11 +14,20 @@ import java.util.stream.Collectors;
 
 
 public class ModuleAppConfigServiceImpl implements ModuleAppConfigService {
+
+    private AdministrationService administrationService;
+    private AppContext appContext;
+
+    public ModuleAppConfigServiceImpl(AppContext appContext, @Qualifier("adminService") AdministrationService administrationService) {
+        this.administrationService = administrationService;
+        this.appContext = appContext;
+    }
+
+
     @Override
     @Transactional(readOnly = true)
     public List<Object> getAppProperties(@NotNull List<String> moduleNames) {
-        AdministrationService administrationService = Context.getAdministrationService();
-        List<ModuleAppConfig> appConfigs = Context.getRegisteredComponents(ModuleAppConfig.class);
+        List<ModuleAppConfig> appConfigs = appContext.getRegisteredComponents(ModuleAppConfig.class);
         return appConfigs.stream()
                 .filter(moduleAppConfig -> moduleNames.contains(moduleAppConfig.getModuleName()))
                 .flatMap(cfg -> cfg.getGlobalAppProperties().stream())
