@@ -30,14 +30,21 @@ public class ModuleAppConfigServiceTest {
 
     @Before
     public void setUp() {
-        Mockito.when(appContext.getRegisteredComponents(ModuleAppConfig.class)).thenReturn(Arrays.asList(new CommonAppConfig()));
+        Mockito.when(appContext.getRegisteredComponents(ModuleAppConfig.class))
+                .thenReturn(Arrays.asList(new CommonAppConfig(), exampleModuleConfig()));
         moduleAppConfigService = new ModuleAppConfigServiceImpl(appContext, administrationService);
     }
 
     @Test
     public void shouldReturnSettingsForCommonModule() {
         List<Object> settings = moduleAppConfigService.getAppProperties(Arrays.asList("commons"));
-        Assert.assertEquals("Expected number of setting for commons app is incorrect", 8, settings.size());
+        Assert.assertEquals("Expected number of setting for commons app is incorrect", 7, settings.size());
+    }
+
+    @Test
+    public void shouldReturnSettingsForMultipleModule() {
+        List<Object> settings = moduleAppConfigService.getAppProperties(Arrays.asList("commons", "example"));
+        Assert.assertEquals("Expected number of setting for commons app is incorrect", 9, settings.size());
     }
 
     @Test
@@ -55,6 +62,21 @@ public class ModuleAppConfigServiceTest {
             Assert.fail("Did not find setting for default locale");
         }
         Assert.assertEquals("en-IN", gePropertyValue(localeSetting.get(), "value"));
+    }
+
+    private ModuleAppConfig exampleModuleConfig() {
+        return new ModuleAppConfig() {
+
+            @Override
+            public String getModuleName() {
+                return "example";
+            }
+
+            @Override
+            public List<String> getGlobalAppProperties() {
+                return Arrays.asList("example.prop1", "example.prop2");
+            }
+        };
     }
 
     private Object gePropertyValue(Object property, String value) {
