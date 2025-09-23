@@ -1,6 +1,7 @@
-package org.bahmni.module.bahmnicommons.web.v1_0.search;
+package org.bahmni.module.bahmnicommons.web.v1_0.search.location;
 
 import org.bahmni.module.bahmnicommons.api.context.AppContext;
+import org.bahmni.module.bahmnicommons.web.v1_0.search.location.BahmniLocationSearchByAttributeHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
