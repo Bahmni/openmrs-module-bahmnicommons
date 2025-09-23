@@ -17,13 +17,12 @@ import org.openmrs.module.webservices.rest.web.RequestContext;
 import org.openmrs.module.webservices.rest.web.resource.impl.AlreadyPaged;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class BahmniLocationSearchByAttributeHandlerTest {
 
     public static final String CUSTOM_ATTRIBUTE_1 = "custom_attribute_1";
@@ -48,7 +47,6 @@ public class BahmniLocationSearchByAttributeHandlerTest {
         LocationAttributeType attributeType2 = new LocationAttributeType();
         attributeType2.setName(CUSTOM_ATTRIBUTE_2);
         attributeType1.setDatatypeClassname(BOOL_DATATYPE_CLASSNAME);
-        List<LocationAttributeType> attributeTypes = Arrays.asList(attributeType1, attributeType2);
 
         when(locationService.getAllLocationAttributeTypes()).thenReturn(Arrays.asList(attributeType1, attributeType2));
         when(requestContext.getParameter(BahmniLocationSearchByAttributeHandler.PARAM_ATTRIBUTE_NAME)).thenReturn(CUSTOM_ATTRIBUTE_1);
