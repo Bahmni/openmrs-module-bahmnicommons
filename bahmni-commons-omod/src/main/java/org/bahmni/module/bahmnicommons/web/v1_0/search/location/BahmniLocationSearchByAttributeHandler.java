@@ -92,9 +92,7 @@ public class BahmniLocationSearchByAttributeHandler implements SearchHandler {
         try {
             Object value = attrDataType.fromReferenceString(attributeValue);
             Map<LocationAttributeType, Object> attributeTypeObjectMap = new HashMap<>();
-            if (attributeType != null) {
-                attributeTypeObjectMap.put(attributeType, value);
-            }
+            attributeTypeObjectMap.put(attributeType, value);
             return attributeTypeObjectMap;
 
         } catch (InvalidCustomValueException e) {
@@ -105,8 +103,8 @@ public class BahmniLocationSearchByAttributeHandler implements SearchHandler {
     }
 
     private LocationAttributeType findLocationAttributeType(String attributeName) {
-        List<LocationAttributeType> allProviderAttributeTypes = locationService.getAllLocationAttributeTypes();
-        for (LocationAttributeType attributeType : allProviderAttributeTypes) {
+        List<LocationAttributeType> allLocationAttributeTypes = locationService.getAllLocationAttributeTypes();
+        for (LocationAttributeType attributeType : allLocationAttributeTypes) {
             boolean result = attributeType.getName().equalsIgnoreCase(attributeName);
             if (result) {
                 return attributeType;
