@@ -6,6 +6,7 @@ import org.bahmni.module.bahmnicommons.api.service.ModuleAppConfigService;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.module.webservices.rest.SimpleObject;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
@@ -26,6 +27,7 @@ public class ModuleAppConfigServiceImpl implements ModuleAppConfigService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable( value = "bahmnicommonsModuleAppProperties" )
     public List<Object> getAppProperties(@NotNull List<String> moduleNames) {
         List<ModuleAppConfig> appConfigs = appContext.getRegisteredComponents(ModuleAppConfig.class);
         return appConfigs.stream()

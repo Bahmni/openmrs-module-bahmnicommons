@@ -1,4 +1,4 @@
-package org.bahmni.module.bahmnicommons.web.v1_0.search;
+package org.bahmni.module.bahmnicommons.web.v1_0.search.location;
 
 import org.openmrs.Location;
 import org.openmrs.LocationTag;
@@ -19,12 +19,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class BahmniLocationSearchHandler implements SearchHandler{
+public class BahmniLocationSearchByTagsHandler implements SearchHandler{
 
     private LocationService locationService;
 
     @Autowired
-    public BahmniLocationSearchHandler(LocationService locationService) {
+    public BahmniLocationSearchByTagsHandler(LocationService locationService) {
         this.locationService = locationService;
     }
 
