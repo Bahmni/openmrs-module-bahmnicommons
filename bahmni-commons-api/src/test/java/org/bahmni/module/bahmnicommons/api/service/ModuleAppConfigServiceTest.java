@@ -38,13 +38,13 @@ public class ModuleAppConfigServiceTest {
     @Test
     public void shouldReturnSettingsForCommonModule() {
         List<Object> settings = moduleAppConfigService.getAppProperties(Arrays.asList("commons"));
-        Assert.assertEquals("Expected number of setting for commons app is incorrect", 7, settings.size());
+        Assert.assertEquals("Expected number of setting for commons app is incorrect", 8, settings.size());
     }
 
     @Test
     public void shouldReturnSettingsForMultipleModule() {
         List<Object> settings = moduleAppConfigService.getAppProperties(Arrays.asList("commons", "example"));
-        Assert.assertEquals("Expected number of setting for commons app is incorrect", 9, settings.size());
+        Assert.assertEquals("Expected number of setting for commons app is incorrect", 10, settings.size());
     }
 
     @Test
@@ -62,6 +62,17 @@ public class ModuleAppConfigServiceTest {
             Assert.fail("Did not find setting for default locale");
         }
         Assert.assertEquals("en-IN", gePropertyValue(localeSetting.get(), "value"));
+    }
+
+    @Test
+    public void shouldReturnDefaultDateFormatFromCommonModule() {
+        Mockito.when(administrationService.getGlobalProperty("default_dateFormat")).thenReturn("dd-MM-yyyy");
+        List<Object> settings = moduleAppConfigService.getAppProperties(Arrays.asList("commons"));
+        Optional<Object> dateFormatSetting = findSetting(settings, "default_dateFormat");
+        if (!dateFormatSetting.isPresent()) {
+            Assert.fail("Did not find setting for default date format");
+        }
+        Assert.assertEquals("dd-MM-yyyy", gePropertyValue(dateFormatSetting.get(), "value"));
     }
 
     private ModuleAppConfig exampleModuleConfig() {

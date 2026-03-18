@@ -21,7 +21,8 @@ public class CommonAppConfig implements ModuleAppConfig {
                 "bahmni.enableAuditLog",
                 "bahmni.enableEmailPrescriptionOption",
                 "bahmni.quickLogoutComboKey",
-                "mrs.genders"
+                "mrs.genders",
+                "default_dateFormat"
         );
     }
 }

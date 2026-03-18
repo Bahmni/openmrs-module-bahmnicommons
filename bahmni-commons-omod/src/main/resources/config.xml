@@ -30,4 +30,16 @@
 
     <mappingFiles>
     </mappingFiles>
+
+    <globalProperty>
+        <property>default_dateFormat</property>
+        <defaultValue></defaultValue>
+        <description>
+            This configuration specifies the default date format pattern used for displaying and parsing dates in the
+            user interface and API responses. The value should follow Java SimpleDateFormat pattern notation. Common
+            patterns include 'dd/MM/yyyy' (day/month/year), 'MM-dd-yyyy' (month-day-year), 'yyyy-MM-dd' (ISO format),
+            or 'dd MMM yyyy' (e.g., 25 Dec 2023). This property helps maintain consistent date display formatting
+            across different Bahmni modules and ensures proper date parsing for locale-specific requirements.
+        </description>
+    </globalProperty>
 </module>
