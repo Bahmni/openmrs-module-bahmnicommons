@@ -239,8 +239,7 @@ public class PatientSearchQueryBuilder {
 				.addScalar("hasBeenAdmitted", StandardBasicTypes.BOOLEAN)
 				.addScalar("extraIdentifiers", StandardBasicTypes.STRING);
 
-		String message = "Running patient search query : " + sqlQuery.getQueryString();
-		log.debug(message);
+		log.debug("Running patient search query : {}", sqlQuery.getQueryString());
 		Iterator<Map.Entry<String,Type>> iterator = types.entrySet().iterator();
 		parameters.add(new QueryParam("paramLimit",limit));
 		parameters.add(new QueryParam("paramOffset",offset));
