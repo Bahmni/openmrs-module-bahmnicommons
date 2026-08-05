@@ -11,8 +11,11 @@ import org.bahmni.module.bahmnicommons.api.contract.patient.PatientSearchParamet
 import org.bahmni.module.bahmnicommons.api.contract.patient.mapper.PatientResponseMapper;
 import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientResponse;
 import org.bahmni.module.bahmnicommons.api.contract.patient.search.PatientSearchQueryBuilder;
+import org.bahmni.module.bahmnicommons.api.search.builder.PatientCriteriaBuilder;
+import org.bahmni.module.bahmnicommons.api.search.builder.PatientQueryContext;
 import org.bahmni.module.bahmnicommons.api.visitlocation.BahmniVisitLocationServiceImpl;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
+import org.bahmni.search.model.SearchCondition;
 import org.hibernate.SQLQuery;
 import org.hibernate.search.query.dsl.MustJunction;
 import org.openmrs.ProgramAttributeType;
@@ -35,7 +38,11 @@ import org.openmrs.PersonName;
 import org.openmrs.RelationshipType;
 import org.openmrs.api.context.Context;
 
-
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Fetch;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -49,12 +56,50 @@ import static java.util.stream.Collectors.toList;
 
 public class PatientDaoImpl implements PatientDao {
 
+    private static final String FETCH_NAMES = "names";
+    private static final String FETCH_IDENTIFIERS = "identifiers";
+    private static final String FETCH_ATTRIBUTES = "attributes";
+    private static final String FIELD_VOIDED = "voided";
+
     public static final int MAX_NGRAM_SIZE = 20;
     private SessionFactory sessionFactory;
+    private final PatientCriteriaBuilder patientCriteriaBuilder;
     private final Logger log = LogManager.getLogger(PatientDaoImpl.class);
 
     public PatientDaoImpl(SessionFactory sessionFactory) {
         this.sessionFactory = sessionFactory;
+        this.patientCriteriaBuilder = new PatientCriteriaBuilder();
+    }
+
+    public PatientDaoImpl(SessionFactory sessionFactory, PatientCriteriaBuilder patientCriteriaBuilder) {
+        this.sessionFactory = sessionFactory;
+        this.patientCriteriaBuilder = patientCriteriaBuilder;
+    }
+
+    @Override
+    public List<Patient> searchPatients(SearchCondition criteria) {
+        Session session = sessionFactory.getCurrentSession();
+        javax.persistence.criteria.CriteriaBuilder cb = session.getCriteriaBuilder();
+
+        CriteriaQuery<Patient> query = cb.createQuery(Patient.class);
+        Root<Patient> root = query.from(Patient.class);
+
+        root.fetch(FETCH_NAMES, JoinType.LEFT);
+        root.fetch(FETCH_IDENTIFIERS, JoinType.LEFT);
+        root.fetch(FETCH_ATTRIBUTES, JoinType.LEFT);
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(cb.isFalse(root.get(FIELD_VOIDED)));
+
+        PatientQueryContext queryContext = new PatientQueryContext(cb, root, predicates);
+        patientCriteriaBuilder.apply(queryContext, criteria);
+
+        query.select(root).distinct(true)
+                .where(predicates.toArray(new Predicate[0]));
+
+        return session.createQuery(query)
+                .setHint("hibernate.query.passDistinctThrough", false)
+                .getResultList();
     }
 
     enum LuceneFilter {

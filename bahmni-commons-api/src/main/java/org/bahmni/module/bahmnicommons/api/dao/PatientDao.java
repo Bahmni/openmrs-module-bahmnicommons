@@ -2,6 +2,7 @@ package org.bahmni.module.bahmnicommons.api.dao;
 
 import org.bahmni.module.bahmnicommons.api.contract.patient.PatientSearchParameters;
 import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientResponse;
+import org.bahmni.search.model.SearchCondition;
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.RelationshipType;
@@ -27,4 +28,6 @@ public interface PatientDao {
     public List<Patient> getPatients(String partialIdentifier, boolean shouldMatchExactPatientId);
 
     public List<RelationshipType> getByAIsToB(String aIsToB);
+
+    List<Patient> searchPatients(SearchCondition criteria);
 }
