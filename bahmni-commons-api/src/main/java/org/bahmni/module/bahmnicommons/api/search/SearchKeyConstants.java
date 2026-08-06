@@ -12,6 +12,8 @@ public final class SearchKeyConstants {
     public static final String PATIENT_NAMES = "names";
     public static final String PATIENT_GENDER = "gender";
     public static final String PATIENT_BIRTHDATE = "birthdate";
+    public static final String PATIENT_DATE_CREATED = "dateCreated";
+
     public static final String PATIENT_ATTRIBUTES = "attributes";
     public static final String PATIENT_IDENTIFIERS = "identifiers";
 
@@ -26,6 +28,5 @@ public final class SearchKeyConstants {
     public static final String IDENTIFIER_VALUE = "identifier";
     public static final String IDENTIFIER_PREFERRED = "preferred";
     public static final String IDENTIFIER_TYPE = "identifierType";
-    public static final String IDENTIFIER_LOCATION = "location";
 }
 

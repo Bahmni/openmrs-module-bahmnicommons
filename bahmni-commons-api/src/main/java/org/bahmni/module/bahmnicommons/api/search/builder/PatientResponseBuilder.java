@@ -20,6 +20,8 @@ public class PatientResponseBuilder {
     private static final String KEY_UUID = "uuid";
     private static final String KEY_GENDER = "gender";
     private static final String KEY_BIRTHDATE = "birthdate";
+    private static final String KEY_DATE_CREATED = "dateCreated";
+
     private static final String KEY_VOIDED = "voided";
     private static final String KEY_NAME = "name";
     private static final String KEY_GIVEN_NAME = "givenName";
@@ -42,6 +44,8 @@ public class PatientResponseBuilder {
         map.put(KEY_UUID, patient.getUuid());
         map.put(KEY_GENDER, patient.getGender());
         map.put(KEY_BIRTHDATE, formatIsoDateTime(patient.getBirthdate()));
+        map.put(KEY_DATE_CREATED, formatIsoDateTime(patient.getDateCreated()));
+
         map.put(KEY_VOIDED, Boolean.TRUE.equals(patient.getVoided()));
         map.put(KEY_NAME, buildNameMap(patient.getPersonName()));
         map.put(KEY_IDENTIFIERS, buildIdentifiersList(patient));

@@ -1,7 +1,7 @@
-package org.bahmni.module.bahmnicommons.web.v1_0.controller.advice;
+package org.bahmni.module.bahmnicommons.web.v1_0.controller.search.advice;
 
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchResponse;
-import org.bahmni.module.bahmnicommons.web.v1_0.controller.search.PatientSearchController;
+import org.bahmni.module.bahmnicommons.web.v1_0.controller.search.PatientController;
 import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.bahmni.search.exceptions.SearchException;
 import org.openmrs.api.APIAuthenticationException;
@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -18,7 +19,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.util.Collections;
 import java.util.List;
 
-@ControllerAdvice(assignableTypes = PatientSearchController.class)
+@ControllerAdvice(assignableTypes = PatientController.class)
 public class PatientSearchExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(PatientSearchExceptionHandler.class);
@@ -46,10 +47,30 @@ public class PatientSearchExceptionHandler {
         return errorResponse(currentEntity(webRequest), HttpStatus.FORBIDDEN.value(), message);
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseBody
+    public ResponseEntity<PatientSearchResponse> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException e, WebRequest webRequest) {
+        String message = e.getMessage() != null ? e.getMessage() : "Request method not supported";
+        return errorResponse(currentEntity(webRequest), HttpStatus.METHOD_NOT_ALLOWED.value(), message);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
     public ResponseEntity<PatientSearchResponse> handleUnexpectedError(
             RuntimeException e, WebRequest webRequest) {
+        SearchException searchException =
+                new SearchException("Unexpected error during patient search", e);
+        log.error(searchException.getMessage(), searchException);
+        int statusCode = searchException.getStatus().getCode();
+        return errorResponse(currentEntity(webRequest), statusCode,
+                "An unexpected error occurred while processing the search request");
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ResponseEntity<PatientSearchResponse> handleUnexpectedCheckedError(
+            Exception e, WebRequest webRequest) {
         SearchException searchException =
                 new SearchException("Unexpected error during patient search", e);
         log.error(searchException.getMessage(), searchException);
@@ -68,7 +89,7 @@ public class PatientSearchExceptionHandler {
 
     private String currentEntity(WebRequest webRequest) {
         Object entity = webRequest.getAttribute(
-                PatientSearchController.CURRENT_ENTITY_ATTRIBUTE, WebRequest.SCOPE_REQUEST);
+                PatientController.CURRENT_ENTITY_ATTRIBUTE, WebRequest.SCOPE_REQUEST);
         return entity != null ? entity.toString() : null;
     }
 }

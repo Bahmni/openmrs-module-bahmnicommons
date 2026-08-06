@@ -24,7 +24,7 @@ public interface BahmniPatientService {
 
     public List<RelationshipType> getByAIsToB(String aIsToB);
 
-    @Authorized({"Get Patients", "View Patients"})
+    @Authorized({"Get Patients"})
     PatientSearchResponse search(PatientSearchRequest request);
 
 }

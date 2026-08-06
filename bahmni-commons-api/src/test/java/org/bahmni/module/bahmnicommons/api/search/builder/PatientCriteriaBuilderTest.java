@@ -31,24 +31,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Verifies that when a single group of criteria references multiple sub-fields
- * of the SAME joined collection (e.g. "patient.identifiers.kind" AND "patient.identifiers.value"),
- * {@link PatientCriteriaBuilder} reuses a single cached join for that collection so that both
- * predicates are evaluated against the SAME identifier row - matching the expected request
- * semantics of:
- * <pre>
- * {
- *   "operator": "AND",
- *   "conditions": [
- *     { "field": "patient.identifiers.kind",  "comparator": "eq", "value": "&lt;identifierType-uuid&gt;" },
- *     { "field": "patient.identifiers.value", "comparator": "eq", "value": "djfk" }
- *   ]
- * }
- * </pre>
- * i.e. "find a patient having an identifier of this TYPE whose VALUE equals djfk" - not
- * "any identifier of this type" OR-ed independently with "any identifier with this value".
- */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class PatientCriteriaBuilderTest {
 

@@ -5,7 +5,6 @@ import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchResponse;
 import org.bahmni.module.bahmnicommons.api.search.validation.PatientSearchCriteriaValidator;
 import org.bahmni.module.bahmnicommons.api.service.BahmniPatientService;
 import org.openmrs.module.webservices.rest.web.RestConstants;
-import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +17,8 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.WebRequest;
 
 @Controller("bahmniCommonsPatientSearchController")
-@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/patientSearch")
-public class PatientSearchController extends BaseRestController {
-
+@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/patient/search")
+public class PatientController {
 
     private static final String SUPPORTED_ENTITY = "patient";
 
@@ -30,16 +28,13 @@ public class PatientSearchController extends BaseRestController {
     private final PatientSearchCriteriaValidator criteriaValidator;
 
     @Autowired
-    public PatientSearchController(BahmniPatientService bahmniPatientService,
-                                   PatientSearchCriteriaValidator criteriaValidator) {
+    public PatientController(BahmniPatientService bahmniPatientService,
+                             PatientSearchCriteriaValidator criteriaValidator) {
         this.bahmniPatientService = bahmniPatientService;
         this.criteriaValidator = criteriaValidator;
     }
 
-    @PostMapping(
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    @PostMapping()
     @ResponseBody
     public ResponseEntity<PatientSearchResponse> search(@RequestBody PatientSearchRequest request,
                                                         WebRequest webRequest) {

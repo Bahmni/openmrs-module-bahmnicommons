@@ -112,7 +112,6 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public PatientSearchResponse search(PatientSearchRequest request) {
         List<Patient> patients = patientDao.searchPatients(request.getCriteria());
         if (patients.isEmpty()) {

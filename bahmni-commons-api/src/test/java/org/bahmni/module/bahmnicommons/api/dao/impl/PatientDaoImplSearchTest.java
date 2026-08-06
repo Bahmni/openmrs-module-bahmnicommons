@@ -35,10 +35,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Unit tests for the criteria-based {@link PatientDaoImpl#searchPatients(SearchCondition)} API.
- * Mirrors the approach used by AppointmentSearchDaoImplTest in openmrs-module-appointments.
- */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class PatientDaoImplSearchTest {
 

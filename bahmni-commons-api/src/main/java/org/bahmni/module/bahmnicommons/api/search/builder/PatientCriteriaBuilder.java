@@ -58,6 +58,9 @@ public class PatientCriteriaBuilder {
                 createFieldPredicate(queryContext -> queryContext.root, SearchKeyConstants.PATIENT_GENDER, FieldType.STRING));
         registry.put(PatientSearchFields.PATIENT_BIRTHDATE,
                 createFieldPredicate(queryContext -> queryContext.root, SearchKeyConstants.PATIENT_BIRTHDATE, FieldType.DATE));
+        registry.put(PatientSearchFields.PATIENT_REGISTRATION_DATE,
+                createFieldPredicate(queryContext -> queryContext.root, SearchKeyConstants.PATIENT_DATE_CREATED, FieldType.DATE));
+
 
         registry.put(PatientSearchFields.PATIENT_ATTRIBUTE_KIND, this::buildAttributeKindPredicate);
         registry.put(PatientSearchFields.PATIENT_ATTRIBUTE_VALUE,
@@ -66,9 +69,6 @@ public class PatientCriteriaBuilder {
         registry.put(PatientSearchFields.PATIENT_IDENTIFIER_KIND, this::buildIdentifierKindPredicate);
         registry.put(PatientSearchFields.PATIENT_IDENTIFIER_VALUE,
                 createFieldPredicate(joinResolver::joinIdentifiers, SearchKeyConstants.IDENTIFIER_VALUE, FieldType.STRING));
-
-        registry.put(PatientSearchFields.PATIENT_IDENTIFIER_LOCATION_UUID,
-                createFieldPredicate(joinResolver::joinIdentifierLocation, SearchKeyConstants.COMMON_UUID, FieldType.STRING));
 
         return registry;
     }
@@ -101,7 +101,7 @@ public class PatientCriteriaBuilder {
         From<?, ?> identifierTypeJoin = joinResolver.joinIdentifierType(queryContext);
         return buildKindMatchPredicate(queryContext.criteriaBuilder, identifierTypeJoin, value, operator);
     }
-
+    
     private Predicate buildKindMatchPredicate(CriteriaBuilder criteriaBuilder, From<?, ?> typeJoin,
                                               String value, ConditionOperator operator) {
         Predicate uuidMatch = criteriaBuilder.equal(typeJoin.get(SearchKeyConstants.COMMON_UUID), value);
@@ -139,28 +139,42 @@ public class PatientCriteriaBuilder {
     }
 
     private Predicate combineChildPredicates(PatientQueryContext queryContext, SearchCondition parentCriteria) {
-        List<Predicate> childPredicates = new ArrayList<>();
-        if (parentCriteria.getConditions() != null) {
-            for (SearchCondition childCriteria : parentCriteria.getConditions()) {
-                Predicate resolvedPredicate = buildCriterion(queryContext, childCriteria);
-                if (resolvedPredicate != null) {
-                    childPredicates.add(resolvedPredicate);
+        SearchCondition previousGroup = queryContext.currentGroup;
+        queryContext.currentGroup = parentCriteria;
+        try {
+            List<Predicate> childPredicates = new ArrayList<>();
+            if (parentCriteria.getConditions() != null) {
+                for (SearchCondition childCriteria : parentCriteria.getConditions()) {
+                    Predicate resolvedPredicate = buildCriterion(queryContext, childCriteria);
+                    if (resolvedPredicate != null) {
+                        childPredicates.add(resolvedPredicate);
+                    }
                 }
             }
-        }
 
-        if (childPredicates.isEmpty()) {
-            return null;
-        }
-        if (childPredicates.size() == 1) {
-            return childPredicates.get(0);
-        }
+            if (childPredicates.isEmpty()) {
+                return null;
+            }
+            if (childPredicates.size() == 1) {
+                return childPredicates.get(0);
+            }
+            if (childPredicates.size() == 2) {
+                Predicate first = childPredicates.get(0);
+                Predicate second = childPredicates.get(1);
+                return parentCriteria.getOperator() == ConditionOperator.OR
+                        ? queryContext.criteriaBuilder.or(first, second)
+                        : queryContext.criteriaBuilder.and(first, second);
+            }
 
-        Predicate[] predicateArray = childPredicates.toArray(new Predicate[0]);
-        return parentCriteria.getOperator() == ConditionOperator.OR
-                ? queryContext.criteriaBuilder.or(predicateArray)
-                : queryContext.criteriaBuilder.and(predicateArray);
+            Predicate[] predicateArray = childPredicates.toArray(new Predicate[0]);
+            return parentCriteria.getOperator() == ConditionOperator.OR
+                    ? queryContext.criteriaBuilder.or(predicateArray)
+                    : queryContext.criteriaBuilder.and(predicateArray);
+        } finally {
+            queryContext.currentGroup = previousGroup;
+        }
     }
+
 
     @SuppressWarnings("unchecked")
     private Predicate buildPredicate(CriteriaBuilder criteriaBuilder, Path<?> fieldPath,
@@ -169,6 +183,8 @@ public class PatientCriteriaBuilder {
             case EQ: return criteriaBuilder.equal(fieldPath, value);
             case GT: return criteriaBuilder.greaterThan((Path<Date>) fieldPath, parseDate(value));
             case LT: return criteriaBuilder.lessThan((Path<Date>) fieldPath, parseDate(value));
+            case GE: return criteriaBuilder.greaterThanOrEqualTo((Path<Date>) fieldPath, parseDate(value));
+            case LE: return criteriaBuilder.lessThanOrEqualTo((Path<Date>) fieldPath, parseDate(value));
             default:
                 throw new InvalidSearchCriteriaException(
                         "Unsupported comparator: " + comparator,

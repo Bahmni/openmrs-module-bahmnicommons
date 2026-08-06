@@ -38,11 +38,7 @@ import org.openmrs.PersonName;
 import org.openmrs.RelationshipType;
 import org.openmrs.api.context.Context;
 
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Fetch;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -79,7 +75,7 @@ public class PatientDaoImpl implements PatientDao {
     @Override
     public List<Patient> searchPatients(SearchCondition criteria) {
         Session session = sessionFactory.getCurrentSession();
-        javax.persistence.criteria.CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
 
         CriteriaQuery<Patient> query = cb.createQuery(Patient.class);
         Root<Patient> root = query.from(Patient.class);

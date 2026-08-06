@@ -13,7 +13,6 @@ public class PatientJoinResolver {
     private static final String JOIN_KEY_ATTRIBUTE_TYPE = "attributeType";
     private static final String JOIN_KEY_IDENTIFIERS = "identifiers";
     private static final String JOIN_KEY_IDENTIFIER_TYPE = "identifierType";
-    private static final String JOIN_KEY_IDENTIFIER_LOCATION = "identifierLocation";
 
 
     From<?, ?> joinNames(PatientQueryContext queryContext) {
@@ -27,66 +26,55 @@ public class PatientJoinResolver {
         return namesJoin;
     }
 
+    private String scopedKey(PatientQueryContext queryContext, String baseKey) {
+        return baseKey + "#" + System.identityHashCode(queryContext.currentGroup);
+    }
+
     From<?, ?> joinAttributes(PatientQueryContext queryContext) {
-        From<?, ?> cached = queryContext.joinCache.get(JOIN_KEY_ATTRIBUTES);
+        String cacheKey = scopedKey(queryContext, JOIN_KEY_ATTRIBUTES);
+        From<?, ?> cached = queryContext.joinCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
         Join<?, ?> attributesJoin = queryContext.root.join(SearchKeyConstants.PATIENT_ATTRIBUTES, JoinType.INNER);
         queryContext.predicates.add(queryContext.criteriaBuilder.isFalse(attributesJoin.get(SearchKeyConstants.COMMON_VOIDED)));
-        queryContext.joinCache.put(JOIN_KEY_ATTRIBUTES, attributesJoin);
+        queryContext.joinCache.put(cacheKey, attributesJoin);
         return attributesJoin;
     }
 
     From<?, ?> joinAttributeType(PatientQueryContext queryContext) {
-        From<?, ?> cached = queryContext.joinCache.get(JOIN_KEY_ATTRIBUTE_TYPE);
+        String cacheKey = scopedKey(queryContext, JOIN_KEY_ATTRIBUTE_TYPE);
+        From<?, ?> cached = queryContext.joinCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
-        // NOTE: joinAttributes() is called here, OUTSIDE of any computeIfAbsent lambda,
-        // so it is free to safely mutate queryContext.joinCache itself (caching the
-        // "attributes" join) without triggering a ConcurrentModificationException.
         From<?, ?> attributesJoin = joinAttributes(queryContext);
         From<?, ?> attributeTypeJoin = attributesJoin.join(SearchKeyConstants.ATTRIBUTE_TYPE, JoinType.INNER);
-        queryContext.joinCache.put(JOIN_KEY_ATTRIBUTE_TYPE, attributeTypeJoin);
+        queryContext.joinCache.put(cacheKey, attributeTypeJoin);
         return attributeTypeJoin;
     }
 
     From<?, ?> joinIdentifiers(PatientQueryContext queryContext) {
-        From<?, ?> cached = queryContext.joinCache.get(JOIN_KEY_IDENTIFIERS);
+        String cacheKey = scopedKey(queryContext, JOIN_KEY_IDENTIFIERS);
+        From<?, ?> cached = queryContext.joinCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
         Join<?, ?> identifiersJoin = queryContext.root.join(SearchKeyConstants.PATIENT_IDENTIFIERS, JoinType.INNER);
         queryContext.predicates.add(queryContext.criteriaBuilder.isFalse(identifiersJoin.get(SearchKeyConstants.COMMON_VOIDED)));
-        queryContext.joinCache.put(JOIN_KEY_IDENTIFIERS, identifiersJoin);
+        queryContext.joinCache.put(cacheKey, identifiersJoin);
         return identifiersJoin;
     }
 
     From<?, ?> joinIdentifierType(PatientQueryContext queryContext) {
-        From<?, ?> cached = queryContext.joinCache.get(JOIN_KEY_IDENTIFIER_TYPE);
+        String cacheKey = scopedKey(queryContext, JOIN_KEY_IDENTIFIER_TYPE);
+        From<?, ?> cached = queryContext.joinCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
-        // NOTE: joinIdentifiers() is called here, OUTSIDE of any computeIfAbsent lambda,
-        // so it is free to safely mutate queryContext.joinCache itself (caching the
-        // "identifiers" join) without triggering a ConcurrentModificationException.
-        // This is precisely the code path exercised by a request combining
-        // "patient.identifiers.kind" and "patient.identifiers.value" in the same AND group.
         From<?, ?> identifiersJoin = joinIdentifiers(queryContext);
         From<?, ?> identifierTypeJoin = identifiersJoin.join(SearchKeyConstants.IDENTIFIER_TYPE, JoinType.INNER);
-        queryContext.joinCache.put(JOIN_KEY_IDENTIFIER_TYPE, identifierTypeJoin);
+        queryContext.joinCache.put(cacheKey, identifierTypeJoin);
         return identifierTypeJoin;
-    }
-
-    From<?, ?> joinIdentifierLocation(PatientQueryContext queryContext) {
-        From<?, ?> cached = queryContext.joinCache.get(JOIN_KEY_IDENTIFIER_LOCATION);
-        if (cached != null) {
-            return cached;
-        }
-        From<?, ?> identifiersJoin = joinIdentifiers(queryContext);
-        From<?, ?> identifierLocationJoin = identifiersJoin.join(SearchKeyConstants.IDENTIFIER_LOCATION, JoinType.INNER);
-        queryContext.joinCache.put(JOIN_KEY_IDENTIFIER_LOCATION, identifierLocationJoin);
-        return identifierLocationJoin;
     }
 }
