@@ -70,6 +70,10 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.bahmni.module</groupId>
+            <artifactId>search-commons</artifactId>
+        </dependency>
 
     </dependencies>
 

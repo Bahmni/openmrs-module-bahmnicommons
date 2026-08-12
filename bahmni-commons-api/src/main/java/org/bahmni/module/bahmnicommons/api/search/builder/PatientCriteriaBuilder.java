@@ -155,16 +155,6 @@ public class PatientCriteriaBuilder {
             if (childPredicates.isEmpty()) {
                 return null;
             }
-            if (childPredicates.size() == 1) {
-                return childPredicates.get(0);
-            }
-            if (childPredicates.size() == 2) {
-                Predicate first = childPredicates.get(0);
-                Predicate second = childPredicates.get(1);
-                return parentCriteria.getOperator() == ConditionOperator.OR
-                        ? queryContext.criteriaBuilder.or(first, second)
-                        : queryContext.criteriaBuilder.and(first, second);
-            }
 
             Predicate[] predicateArray = childPredicates.toArray(new Predicate[0]);
             return parentCriteria.getOperator() == ConditionOperator.OR

@@ -103,15 +103,10 @@ public class PatientCriteriaBuilderTest {
         when(criteriaBuilder.equal(namePath, IDENTIFIER_TYPE_UUID)).thenReturn(nameMatchPredicate);
         when(criteriaBuilder.or(uuidMatchPredicate, nameMatchPredicate)).thenReturn(kindPredicate);
 
-        // identifier value path off of the SAME identifiersJoin instance.
         doReturn(identifierValuePath).when(identifiersJoin).get(SearchKeyConstants.IDENTIFIER_VALUE);
         when(criteriaBuilder.equal(identifierValuePath, IDENTIFIER_VALUE)).thenReturn(valuePredicate);
 
-        // Exact mock identity matching (no varargs/array matchers) - CriteriaBuilder.and(...)
-        // is overloaded (Predicate... vs Expression<Boolean>, Expression<Boolean>), and matching
-        // it via any(Predicate[].class) is unreliable across Mockito versions/JVMs. Stubbing and
-        // verifying with the concrete expected mock instances avoids that ambiguity entirely.
-        when(criteriaBuilder.and(kindPredicate, valuePredicate)).thenReturn(combinedAndPredicate);
+        when(criteriaBuilder.and(new Predicate[]{kindPredicate, valuePredicate})).thenReturn(combinedAndPredicate);
     }
 
 
@@ -121,8 +116,6 @@ public class PatientCriteriaBuilderTest {
 
         patientCriteriaBuilder.apply(queryContext, group);
 
-        // The "identifiers" join must be created exactly once and reused for both leaf conditions,
-        // guaranteeing that "kind" and "value" are matched against the SAME identifier row.
         verify(root, times(1)).join(eq(SearchKeyConstants.PATIENT_IDENTIFIERS), any(JoinType.class));
         verify(identifiersJoin, times(1)).join(eq(SearchKeyConstants.IDENTIFIER_TYPE), any(JoinType.class));
     }
@@ -133,9 +126,8 @@ public class PatientCriteriaBuilderTest {
 
         patientCriteriaBuilder.apply(queryContext, group);
 
-        verify(criteriaBuilder, times(1)).and(kindPredicate, valuePredicate);
+        verify(criteriaBuilder, times(1)).and(new Predicate[]{kindPredicate, valuePredicate});
         assertThat(predicates, hasItem(combinedAndPredicate));
-
     }
 
     @Test
@@ -144,8 +136,6 @@ public class PatientCriteriaBuilderTest {
 
         patientCriteriaBuilder.apply(queryContext, group);
 
-        // voided-exclusion predicate is added exactly once (when the join is first created),
-        // not once per leaf condition.
         long voidedPredicateCount = predicates.stream().filter(p -> p == voidedPredicate).count();
         assertThat(voidedPredicateCount, is(1L));
     }

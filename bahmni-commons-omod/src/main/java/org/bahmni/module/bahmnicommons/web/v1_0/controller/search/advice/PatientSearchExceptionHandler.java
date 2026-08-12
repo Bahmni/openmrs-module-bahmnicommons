@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -53,6 +54,18 @@ public class PatientSearchExceptionHandler {
             HttpRequestMethodNotSupportedException e, WebRequest webRequest) {
         String message = e.getMessage() != null ? e.getMessage() : "Request method not supported";
         return errorResponse(currentEntity(webRequest), HttpStatus.METHOD_NOT_ALLOWED.value(), message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseBody
+    public ResponseEntity<PatientSearchResponse> handleMalformedRequestBody(
+            HttpMessageNotReadableException e, WebRequest webRequest) {
+        Throwable cause = e.getMostSpecificCause();
+        String message = cause != null && cause.getMessage() != null
+                ? cause.getMessage()
+                : "Malformed request body";
+        log.error("Malformed patient search request body", e);
+        return errorResponse(currentEntity(webRequest), HttpStatus.BAD_REQUEST.value(), message);
     }
 
     @ExceptionHandler(RuntimeException.class)
