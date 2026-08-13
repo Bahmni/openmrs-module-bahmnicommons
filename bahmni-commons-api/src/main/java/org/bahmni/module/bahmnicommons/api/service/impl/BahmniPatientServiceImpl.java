@@ -7,6 +7,9 @@ import org.apache.logging.log4j.Logger;
 import org.bahmni.module.bahmnicommons.api.contract.patient.PatientSearchParameters;
 import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientConfigResponse;
 import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientResponse;
+import org.bahmni.module.bahmnicommons.api.search.builder.PatientResponseBuilder;
+import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchRequest;
+import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchResponse;
 import org.bahmni.module.bahmnicommons.api.service.BahmniPatientService;
 import org.bahmni.module.bahmnicommons.api.visitlocation.BahmniVisitLocationServiceImpl;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
@@ -21,24 +24,35 @@ import org.openmrs.api.context.Context;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @Lazy //to toString rid of cyclic dependencies
 @Transactional
 public class BahmniPatientServiceImpl implements BahmniPatientService {
+    private static final String ENTITY_PATIENT = "patient";
+
     private PersonService personService;
     private ConceptService conceptService;
     private PatientDao patientDao;
+    private final PatientResponseBuilder patientResponseBuilder;
 
     private static final Logger log = LogManager.getLogger(BahmniPatientServiceImpl.class);
 
     //@Autowired
     public BahmniPatientServiceImpl(PersonService personService, ConceptService conceptService,
                                     PatientDao patientDao) {
+        this(personService, conceptService, patientDao, new PatientResponseBuilder());
+    }
+
+    public BahmniPatientServiceImpl(PersonService personService, ConceptService conceptService,
+                                    PatientDao patientDao, PatientResponseBuilder patientResponseBuilder) {
         this.personService = personService;
         this.conceptService = conceptService;
         this.patientDao = patientDao;
+        this.patientResponseBuilder = patientResponseBuilder;
     }
 
     @Override
@@ -97,7 +111,22 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
         return patientDao.getByAIsToB(aIsToB);
     }
 
+    @Override
+    public PatientSearchResponse search(PatientSearchRequest request) {
+        List<Patient> patients = patientDao.searchPatients(request.getCriteria());
+        if (patients.isEmpty()) {
+            return PatientSearchResponse.success(ENTITY_PATIENT, new ArrayList<>());
+        }
+
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (Patient patient : patients) {
+            results.add(patientResponseBuilder.mapPatient(patient));
+        }
+        return PatientSearchResponse.success(ENTITY_PATIENT, results);
+    }
+
     private Location getVisitLocation(String loginLocationUuid) {
+
         if (StringUtils.isBlank(loginLocationUuid)) {
             return null;
         }

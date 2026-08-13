@@ -10,8 +10,13 @@
 
     <context:component-scan base-package="org.bahmni.module.bahmnicommons.api"/>
 
+    <bean id="patientCriteriaBuilder" class="org.bahmni.module.bahmnicommons.api.search.builder.PatientCriteriaBuilder"/>
+
+    <bean id="patientResponseBuilder" class="org.bahmni.module.bahmnicommons.api.search.builder.PatientResponseBuilder"/>
+
     <bean id="patientDao" class="org.bahmni.module.bahmnicommons.api.dao.impl.PatientDaoImpl">
         <constructor-arg ref="sessionFactory"/>
+        <constructor-arg ref="patientCriteriaBuilder"/>
     </bean>
 
     <bean id="bahmniPatientService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
@@ -23,8 +28,10 @@
                 <constructor-arg ref="personService"/>
                 <constructor-arg ref="conceptService"/>
                 <constructor-arg ref="patientDao"/>
+                <constructor-arg ref="patientResponseBuilder"/>
             </bean>
         </property>
+
         <property name="preInterceptors">
             <ref bean="serviceInterceptors"/>
         </property>

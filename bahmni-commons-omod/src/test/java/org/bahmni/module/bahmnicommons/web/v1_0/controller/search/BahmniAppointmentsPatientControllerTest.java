@@ -24,7 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-public class BahmniAppointmentsPatientSearchControllerTest extends BaseIntegrationTest {
+public class BahmniAppointmentsPatientControllerTest extends BaseIntegrationTest {
     
     @Mock
     private HttpServletRequest httpServletRequest;

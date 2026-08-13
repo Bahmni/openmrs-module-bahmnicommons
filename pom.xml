@@ -47,6 +47,7 @@
         <lombokVersion>1.16.0</lombokVersion>
         <idgenVersion>4.7.0</idgenVersion>
         <javaxMail.version>1.6.2</javaxMail.version>
+        <searchCommonsVersion>2.0.0-SNAPSHOT</searchCommonsVersion>
         <!--test dependencies-->
         <junitVersion>4.13</junitVersion>
         <powerMockVersion>2.0.7</powerMockVersion>
@@ -105,6 +106,12 @@
                 <artifactId>javax.servlet-api</artifactId>
                 <version>3.0.1</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bahmni.module</groupId>
+                <artifactId>search-commons</artifactId>
+                <version>${searchCommonsVersion}</version>
+                <scope>compile</scope>
             </dependency>
 
             <!--test dependencies-->
