@@ -16,6 +16,7 @@ import org.bahmni.module.bahmnicommons.api.search.builder.PatientQueryContext;
 import org.bahmni.module.bahmnicommons.api.visitlocation.BahmniVisitLocationServiceImpl;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
 import org.bahmni.search.model.SearchCondition;
+import org.bahmni.search.pagination.PaginationHelper;
 import org.hibernate.SQLQuery;
 import org.hibernate.search.query.dsl.MustJunction;
 import org.openmrs.ProgramAttributeType;
@@ -72,8 +73,11 @@ public class PatientDaoImpl implements PatientDao {
         this.patientCriteriaBuilder = patientCriteriaBuilder;
     }
 
+    private static final String FIELD_PATIENT_ID = "patientId";
+
     @Override
-    public List<Patient> searchPatients(SearchCondition criteria) {
+    public List<Patient> searchPatients(SearchCondition criteria, Long cursorId,
+                                         String sortOrder, String direction, int limit) {
         Session session = sessionFactory.getCurrentSession();
         CriteriaBuilder cb = session.getCriteriaBuilder();
 
@@ -84,18 +88,54 @@ public class PatientDaoImpl implements PatientDao {
         root.fetch(FETCH_IDENTIFIERS, JoinType.LEFT);
         root.fetch(FETCH_ATTRIBUTES, JoinType.LEFT);
 
+        List<Predicate> predicates = buildBasePredicates(cb, root, criteria);
+
+        boolean queryDescending = PaginationHelper.resolveQueryDescending(sortOrder, direction);
+        if (cursorId != null) {
+            if (queryDescending) {
+                predicates.add(cb.lessThan(root.get(FIELD_PATIENT_ID), cursorId.intValue()));
+            } else {
+                predicates.add(cb.greaterThan(root.get(FIELD_PATIENT_ID), cursorId.intValue()));
+            }
+        }
+
+        query.select(root).distinct(true)
+                .where(predicates.toArray(new Predicate[0]))
+                .orderBy(queryDescending
+                        ? cb.desc(root.get(FIELD_PATIENT_ID))
+                        : cb.asc(root.get(FIELD_PATIENT_ID)));
+
+        return session.createQuery(query)
+                .setHint(PaginationHelper.HINT_PASS_DISTINCT_THROUGH, false)
+                .setMaxResults(limit)
+                .getResultList();
+    }
+
+    @Override
+    public long countPatients(SearchCondition criteria) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<Patient> root = query.from(Patient.class);
+
+        List<Predicate> predicates = buildBasePredicates(cb, root, criteria);
+
+        query.select(cb.countDistinct(root))
+                .where(predicates.toArray(new Predicate[0]));
+
+        return session.createQuery(query).getSingleResult();
+    }
+
+    private List<Predicate> buildBasePredicates(CriteriaBuilder cb, Root<Patient> root,
+                                                 SearchCondition criteria) {
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(cb.isFalse(root.get(FIELD_VOIDED)));
 
         PatientQueryContext queryContext = new PatientQueryContext(cb, root, predicates);
         patientCriteriaBuilder.apply(queryContext, criteria);
 
-        query.select(root).distinct(true)
-                .where(predicates.toArray(new Predicate[0]));
-
-        return session.createQuery(query)
-                .setHint("hibernate.query.passDistinctThrough", false)
-                .getResultList();
+        return predicates;
     }
 
     enum LuceneFilter {

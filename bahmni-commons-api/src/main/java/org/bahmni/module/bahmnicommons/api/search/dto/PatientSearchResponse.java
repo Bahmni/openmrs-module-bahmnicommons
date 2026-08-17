@@ -10,27 +10,30 @@ import java.util.Map;
 public class PatientSearchResponse {
 
     private final String context;
-    private final SearchResponseMeta metaData;
+    private final SearchResponseMeta meta;
     private final List<Map<String, Object>> results;
-    private final List<Map<String, String>> links;
     private final SearchError error;
 
-    private PatientSearchResponse(String context, List<Map<String, Object>> results,
-                                   List<Map<String, String>> links, SearchError error) {
+    private PatientSearchResponse(String context, SearchResponseMeta meta,
+                                   List<Map<String, Object>> results, SearchError error) {
         this.context = context;
-        this.metaData = new SearchResponseMeta();
+        this.meta = meta;
         this.results = results;
-        this.links = links;
         this.error = error;
     }
 
     public static PatientSearchResponse success(String context, List<Map<String, Object>> results) {
-        return new PatientSearchResponse(context, results, Collections.emptyList(), null);
+        return new PatientSearchResponse(context, new SearchResponseMeta(), results, null);
+    }
+
+    public static PatientSearchResponse success(String context, List<Map<String, Object>> results,
+                                                 SearchResponseMeta meta) {
+        return new PatientSearchResponse(context, meta, results, null);
     }
 
     public static PatientSearchResponse error(String context, int status, List<String> messages) {
-        return new PatientSearchResponse(context, Collections.emptyList(), Collections.emptyList(),
-                new SearchError(status, messages));
+        return new PatientSearchResponse(context, new SearchResponseMeta(),
+                Collections.emptyList(), new SearchError(status, messages));
     }
 
     public static PatientSearchResponse error(String context, int status, String message) {
@@ -41,16 +44,12 @@ public class PatientSearchResponse {
         return context;
     }
 
-    public SearchResponseMeta getMetaData() {
-        return metaData;
+    public SearchResponseMeta getMeta() {
+        return meta;
     }
 
     public List<Map<String, Object>> getResults() {
         return results;
-    }
-
-    public List<Map<String, String>> getLinks() {
-        return links;
     }
 
     public SearchError getError() {

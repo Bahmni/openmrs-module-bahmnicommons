@@ -10,7 +10,12 @@ import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientResp
 import org.bahmni.module.bahmnicommons.api.search.builder.PatientResponseBuilder;
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchRequest;
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchResponse;
+import org.bahmni.module.bahmnicommons.api.search.dto.SearchResponseMeta;
 import org.bahmni.module.bahmnicommons.api.service.BahmniPatientService;
+import org.bahmni.search.model.PaginationRequest;
+import org.bahmni.search.model.PaginationResponse;
+import org.bahmni.search.model.SearchRequestMeta;
+import org.bahmni.search.pagination.PaginationHelper;
 import org.bahmni.module.bahmnicommons.api.visitlocation.BahmniVisitLocationServiceImpl;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
 import org.openmrs.Concept;
@@ -113,16 +118,38 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
 
     @Override
     public PatientSearchResponse search(PatientSearchRequest request) {
-        List<Patient> patients = patientDao.searchPatients(request.getCriteria());
-        if (patients.isEmpty()) {
-            return PatientSearchResponse.success(ENTITY_PATIENT, new ArrayList<>());
-        }
+        SearchRequestMeta meta = request.getMeta();
+        PaginationRequest pagination = PaginationHelper.resolvePagination(meta);
+        int effectiveLimit = PaginationHelper.resolveEffectiveLimit(pagination.getLimit());
+        String sortOrder = PaginationHelper.resolveSortOrder(pagination.getSortOrder());
+        String direction = pagination.getDirection();
+        Long cursorId = PaginationHelper.decodeCursor(pagination.getCursor());
+        boolean isPrev = PaginationHelper.isPrevDirection(direction);
+
+        int fetchSize = effectiveLimit + 1;
+        List<Patient> rawPatients = patientDao.searchPatients(
+                request.getCriteria(), cursorId, sortOrder, direction, fetchSize);
+
+        boolean hasMore = PaginationHelper.hasMore(rawPatients.size(), effectiveLimit);
+        List<Patient> patients = PaginationHelper.trimAndOrient(rawPatients, effectiveLimit, isPrev);
 
         List<Map<String, Object>> results = new ArrayList<>();
         for (Patient patient : patients) {
             results.add(patientResponseBuilder.mapPatient(patient));
         }
-        return PatientSearchResponse.success(ENTITY_PATIENT, results);
+
+        PaginationResponse paginationResponse = patients.isEmpty()
+                ? PaginationHelper.emptyPaginationResponse()
+                : PaginationHelper.buildPaginationResponse(
+                        patients.get(0).getPatientId(),
+                        patients.get(patients.size() - 1).getPatientId(),
+                        hasMore, cursorId, isPrev);
+
+        Long totalCount = PaginationHelper.resolveTotalCount(meta,
+                () -> patientDao.countPatients(request.getCriteria()));
+
+        SearchResponseMeta responseMeta = new SearchResponseMeta(paginationResponse, totalCount);
+        return PatientSearchResponse.success(ENTITY_PATIENT, results, responseMeta);
     }
 
     private Location getVisitLocation(String loginLocationUuid) {

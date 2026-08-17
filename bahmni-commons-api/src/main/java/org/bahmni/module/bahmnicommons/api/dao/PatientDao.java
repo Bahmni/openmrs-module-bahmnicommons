@@ -29,5 +29,8 @@ public interface PatientDao {
 
     public List<RelationshipType> getByAIsToB(String aIsToB);
 
-    List<Patient> searchPatients(SearchCondition criteria);
+    List<Patient> searchPatients(SearchCondition criteria, Long cursorId,
+                                  String sortOrder, String direction, int limit);
+
+    long countPatients(SearchCondition criteria);
 }
