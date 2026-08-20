@@ -8,15 +8,19 @@ import org.bahmni.module.bahmnicommons.api.search.builder.PatientResponseBuilder
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchRequest;
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchResponse;
 import org.bahmni.search.cursor.CursorCodec;
+import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.bahmni.search.model.PaginationRequest;
 import org.bahmni.search.model.SearchCondition;
 import org.bahmni.search.model.SearchRequestMeta;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Concept;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttributeType;
+import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PersonService;
 
@@ -36,6 +40,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class BahmniPatientServiceImplTest {
     @Mock
     private PersonService personService;
@@ -45,13 +50,15 @@ public class BahmniPatientServiceImplTest {
     private PatientDao patientDao;
     @Mock
     private PatientResponseBuilder patientResponseBuilder;
+    @Mock
+    private AdministrationService administrationService;
 
     private BahmniPatientServiceImpl bahmniPatientService;
 
     @Before
     public void setup() {
         initMocks(this);
-        bahmniPatientService = new BahmniPatientServiceImpl(personService, conceptService, patientDao, patientResponseBuilder);
+        bahmniPatientService = new BahmniPatientServiceImpl(personService, conceptService, patientDao, patientResponseBuilder, administrationService);
     }
 
     @Test
@@ -132,7 +139,7 @@ public class BahmniPatientServiceImplTest {
 
         PatientSearchResponse response = bahmniPatientService.search(request);
 
-        verify(patientDao, times(1)).searchPatients(
+        verify(patientDao, times(1)).findMatchingIds(
                 eq(request.getCriteria()), isNull(Long.class), anyString(), isNull(String.class), eq(101));
         assertThat(response.isSuccess(), is(true));
         assertThat(response.getResults().size(), is(0));
@@ -140,13 +147,14 @@ public class BahmniPatientServiceImplTest {
 
     @Test
     public void shouldDecodeCursorAndPassToDaoForPatientSearch() {
-        String cursor = CursorCodec.encode(50);
+        String cursor = CursorCodec.encode("patient", 50L);
+
         PatientSearchRequest request = searchRequestWithPagination(10, cursor, "next");
         mockDaoReturns(Collections.<Patient>emptyList());
 
         bahmniPatientService.search(request);
 
-        verify(patientDao, times(1)).searchPatients(
+        verify(patientDao, times(1)).findMatchingIds(
                 any(SearchCondition.class), eq(50L), anyString(), eq("next"), eq(11));
     }
 
@@ -157,8 +165,52 @@ public class BahmniPatientServiceImplTest {
 
         bahmniPatientService.search(request);
 
-        verify(patientDao, times(1)).searchPatients(
+        verify(patientDao, times(1)).findMatchingIds(
                 any(SearchCondition.class), isNull(Long.class), anyString(), isNull(String.class), eq(501));
+    }
+
+    @Test
+    public void shouldUseConfiguredDefaultLimitFromGlobalPropertyForPatientSearch() {
+        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.defaultLimit")).thenReturn("20");
+        PatientSearchRequest request = validSearchRequest();
+        mockDaoReturns(Collections.<Patient>emptyList());
+
+        bahmniPatientService.search(request);
+
+        verify(patientDao, times(1)).findMatchingIds(
+                any(SearchCondition.class), isNull(Long.class), anyString(), isNull(String.class), eq(21));
+    }
+
+    @Test
+    public void shouldUseConfiguredMaxLimitFromGlobalPropertyForPatientSearch() {
+        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.maxLimit")).thenReturn("50");
+        PatientSearchRequest request = searchRequestWithPagination(1000, null, null);
+        mockDaoReturns(Collections.<Patient>emptyList());
+
+        bahmniPatientService.search(request);
+
+        verify(patientDao, times(1)).findMatchingIds(
+                any(SearchCondition.class), isNull(Long.class), anyString(), isNull(String.class), eq(51));
+    }
+
+    @Test(expected = InvalidSearchCriteriaException.class)
+    public void shouldThrowWhenConfiguredMaxLimitGlobalPropertyIsNonPositiveForPatientSearch() {
+        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.maxLimit")).thenReturn("0");
+        PatientSearchRequest request = validSearchRequest();
+
+        bahmniPatientService.search(request);
+    }
+
+    @Test
+    public void shouldFallbackToDefaultWhenGlobalPropertyIsInvalidForPatientSearch() {
+        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.defaultLimit")).thenReturn("not-a-number");
+        PatientSearchRequest request = validSearchRequest();
+        mockDaoReturns(Collections.<Patient>emptyList());
+
+        bahmniPatientService.search(request);
+
+        verify(patientDao, times(1)).findMatchingIds(
+                any(SearchCondition.class), isNull(Long.class), anyString(), isNull(String.class), eq(101));
     }
 
     @Test
@@ -217,9 +269,14 @@ public class BahmniPatientServiceImplTest {
     }
 
     private void mockDaoReturns(List<Patient> patients) {
-        when(patientDao.searchPatients(
+        List<Integer> matchingIds = new ArrayList<>();
+        for (Patient patient : patients) {
+            matchingIds.add(patient.getPatientId());
+        }
+        when(patientDao.findMatchingIds(
                 any(SearchCondition.class), any(), anyString(), any(), anyInt()))
-                .thenReturn(patients);
+                .thenReturn(matchingIds);
+        when(patientDao.findByIds(anyList())).thenReturn(patients);
     }
 
     private Patient patientWithId(int id) {

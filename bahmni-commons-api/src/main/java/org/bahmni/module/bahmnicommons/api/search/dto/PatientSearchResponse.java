@@ -1,6 +1,7 @@
 package org.bahmni.module.bahmnicommons.api.search.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.bahmni.search.model.SearchResponseMeta;
 
 import java.util.Collections;
 import java.util.List;

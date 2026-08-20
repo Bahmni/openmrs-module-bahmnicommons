@@ -42,4 +42,23 @@
             across different Bahmni modules and ensures proper date parsing for locale-specific requirements.
         </description>
     </globalProperty>
+
+    <globalProperty>
+        <property>bahmni.patientSearch.pagination.defaultLimit</property>
+        <defaultValue>100</defaultValue>
+        <description>
+            The default number of patient search results returned per page when the client does not specify a
+            batch size in the search request.
+        </description>
+    </globalProperty>
+
+    <globalProperty>
+        <property>bahmni.patientSearch.pagination.maxLimit</property>
+        <defaultValue>500</defaultValue>
+        <description>
+            The maximum number of patient search results that can be returned per page, regardless of the batch
+            size requested by the client. Requested limits greater than this value are clamped to this maximum.
+        </description>
+    </globalProperty>
 </module>
+

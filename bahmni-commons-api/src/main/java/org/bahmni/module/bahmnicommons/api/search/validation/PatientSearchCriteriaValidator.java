@@ -13,6 +13,6 @@ public class PatientSearchCriteriaValidator {
 
     public void validateRequest(PatientSearchRequest request) {
         SearchCriteriaValidationUtils.validateCriteria(request.getCriteria());
-        SearchCriteriaValidationUtils.validateMeta(request.getMeta());
+        SearchCriteriaValidationUtils.validateMeta(request.getEntity(), request.getMeta());
     }
 }

@@ -59,6 +59,9 @@ public class PatientDaoImplSearchTest {
     private CriteriaQuery<Patient> criteriaQuery;
 
     @Mock
+    private CriteriaQuery<Integer> idCriteriaQuery;
+
+    @Mock
     private Root<Patient> root;
 
     @Mock
@@ -83,10 +86,16 @@ public class PatientDaoImplSearchTest {
     private Predicate voidedPredicate;
 
     @Mock
-    private Order descOrder;
+    private Order order;
 
     @Mock
     private Query<Patient> hibernateQuery;
+
+    @Mock
+    private Query<Integer> idHibernateQuery;
+
+    @Mock
+    private Predicate inPredicate;
 
     private PatientDaoImpl patientDao;
 
@@ -97,7 +106,9 @@ public class PatientDaoImplSearchTest {
         when(sessionFactory.getCurrentSession()).thenReturn(session);
         when(session.getCriteriaBuilder()).thenReturn(criteriaBuilder);
         when(criteriaBuilder.createQuery(Patient.class)).thenReturn(criteriaQuery);
+        when(criteriaBuilder.createQuery(Integer.class)).thenReturn(idCriteriaQuery);
         when(criteriaQuery.from(Patient.class)).thenReturn(root);
+        when(idCriteriaQuery.from(Patient.class)).thenReturn(root);
 
         doReturn(namesFetch).when(root).fetch(eq(FETCH_NAMES), any(JoinType.class));
         doReturn(identifiersFetch).when(root).fetch(eq(FETCH_IDENTIFIERS), any(JoinType.class));
@@ -106,24 +117,33 @@ public class PatientDaoImplSearchTest {
         doReturn(voidedPath).when(root).get(FIELD_VOIDED);
         doReturn(patientIdPath).when(root).get("patientId");
         when(criteriaBuilder.isFalse(voidedPath)).thenReturn(voidedPredicate);
-        when(criteriaBuilder.desc(any(Expression.class))).thenReturn(descOrder);
-        when(criteriaBuilder.asc(any(Expression.class))).thenReturn(descOrder);
+        when(criteriaBuilder.desc(patientIdPath)).thenReturn(order);
+        when(criteriaBuilder.asc(patientIdPath)).thenReturn(order);
 
         when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
         when(criteriaQuery.distinct(true)).thenReturn(criteriaQuery);
-        doReturn(criteriaQuery).when(criteriaQuery).where((Predicate[]) any());
-        doReturn(criteriaQuery).when(criteriaQuery).orderBy((Order[]) any());
+        doReturn(criteriaQuery).when(criteriaQuery).where(any(Predicate[].class));
+
+        doReturn(idCriteriaQuery).when(idCriteriaQuery).select(any(Expression.class));
+        when(idCriteriaQuery.distinct(true)).thenReturn(idCriteriaQuery);
+        doReturn(idCriteriaQuery).when(idCriteriaQuery).where(any(Predicate[].class));
+        doReturn(idCriteriaQuery).when(idCriteriaQuery).orderBy(any(Order.class));
+
+        doReturn(inPredicate).when(patientIdPath).in(any(List.class));
 
         when(session.createQuery(criteriaQuery)).thenReturn(hibernateQuery);
         when(hibernateQuery.setHint(anyString(), any())).thenReturn(hibernateQuery);
         when(hibernateQuery.setMaxResults(anyInt())).thenReturn(hibernateQuery);
+
+        when(session.createQuery(idCriteriaQuery)).thenReturn(idHibernateQuery);
+        when(idHibernateQuery.setMaxResults(anyInt())).thenReturn(idHibernateQuery);
     }
 
     @Test
-    public void shouldFetchNamesIdentifiersAndAttributesToAvoidNPlusOne() {
+    public void shouldFetchNamesIdentifiersAndAttributesToAvoidNPlusOneWhenFindingByIds() {
         when(hibernateQuery.getResultList()).thenReturn(Collections.emptyList());
 
-        patientDao.searchPatients(searchCondition(), null, "desc", null, 100);
+        patientDao.findByIds(Arrays.asList(1));
 
         verify(root, times(1)).fetch(eq(FETCH_NAMES), eq(JoinType.LEFT));
         verify(root, times(1)).fetch(eq(FETCH_IDENTIFIERS), eq(JoinType.LEFT));
@@ -131,63 +151,92 @@ public class PatientDaoImplSearchTest {
     }
 
     @Test
-    public void shouldExcludeVoidedPatients() {
+    public void shouldApplyDistinctAndPassDistinctThroughFalseHintWhenFindingByIdsToAvoidDuplicateRows() {
         when(hibernateQuery.getResultList()).thenReturn(Collections.emptyList());
 
-        patientDao.searchPatients(searchCondition(), null, "desc", null, 100);
-
-        verify(root, times(1)).get(FIELD_VOIDED);
-        verify(criteriaBuilder, times(1)).isFalse(voidedPath);
-    }
-
-    @Test
-    public void shouldDelegateCriteriaToPatientCriteriaBuilder() {
-        when(hibernateQuery.getResultList()).thenReturn(Collections.emptyList());
-        SearchCondition condition = searchCondition();
-
-        patientDao.searchPatients(condition, null, "desc", null, 100);
-
-        verify(patientCriteriaBuilder, times(1)).apply(any(PatientQueryContext.class), eq(condition));
-    }
-
-    @Test
-    public void shouldApplyDistinctAndPassDistinctThroughFalseHintToAvoidDuplicateRows() {
-        when(hibernateQuery.getResultList()).thenReturn(Collections.emptyList());
-
-        patientDao.searchPatients(searchCondition(), null, "desc", null, 100);
+        patientDao.findByIds(Arrays.asList(1));
 
         verify(criteriaQuery, times(1)).distinct(true);
         verify(hibernateQuery, times(1)).setHint("hibernate.query.passDistinctThrough", false);
     }
 
     @Test
-    public void shouldReturnPatientsReturnedByHibernateQuery() {
+    public void shouldReturnPatientsReturnedByHibernateQueryWhenFindingByIds() {
         Patient patient = new Patient();
+        patient.setPatientId(1);
         List<Patient> expected = Arrays.asList(patient);
         when(hibernateQuery.getResultList()).thenReturn(expected);
 
-        List<Patient> actual = patientDao.searchPatients(searchCondition(), null, "desc", null, 100);
+        List<Patient> actual = patientDao.findByIds(Arrays.asList(1));
 
         assertThat(actual, is(expected));
     }
 
     @Test
-    public void shouldApplyMaxResultsLimit() {
-        when(hibernateQuery.getResultList()).thenReturn(Collections.emptyList());
+    public void shouldReturnEmptyListWithoutQueryingWhenFindingByIdsWithNoIds() {
+        List<Patient> actual = patientDao.findByIds(Collections.<Integer>emptyList());
 
-        patientDao.searchPatients(searchCondition(), null, "desc", null, 50);
+        assertThat(actual, is(Collections.<Patient>emptyList()));
+    }
 
-        verify(hibernateQuery, times(1)).setMaxResults(50);
+    @Test
+    public void shouldExcludeVoidedPatientsWhenFindingMatchingIds() {
+        when(idHibernateQuery.getResultList()).thenReturn(Collections.emptyList());
+
+        patientDao.findMatchingIds(searchCondition(), null, "desc", null, 100);
+
+        verify(root, times(1)).get(FIELD_VOIDED);
+        verify(criteriaBuilder, times(1)).isFalse(voidedPath);
+    }
+
+    @Test
+    public void shouldDelegateCriteriaToPatientCriteriaBuilderWhenFindingMatchingIds() {
+        when(idHibernateQuery.getResultList()).thenReturn(Collections.emptyList());
+        SearchCondition condition = searchCondition();
+
+        patientDao.findMatchingIds(condition, null, "desc", null, 100);
+
+        verify(patientCriteriaBuilder, times(1)).apply(any(PatientQueryContext.class), eq(condition));
+    }
+
+    @Test
+    public void shouldNotApplyFetchJoinsWhenFindingMatchingIds() {
+        when(idHibernateQuery.getResultList()).thenReturn(Collections.emptyList());
+
+        patientDao.findMatchingIds(searchCondition(), null, "desc", null, 100);
+
+        verify(root, times(0)).fetch(eq(FETCH_NAMES), any(JoinType.class));
+        verify(root, times(0)).fetch(eq(FETCH_IDENTIFIERS), any(JoinType.class));
+        verify(root, times(0)).fetch(eq(FETCH_ATTRIBUTES), any(JoinType.class));
+    }
+
+    @Test
+    public void shouldApplyMaxResultsLimitWhenFindingMatchingIds() {
+        when(idHibernateQuery.getResultList()).thenReturn(Collections.emptyList());
+
+        patientDao.findMatchingIds(searchCondition(), null, "desc", null, 50);
+
+        verify(idHibernateQuery, times(1)).setMaxResults(50);
+    }
+
+    @Test
+    public void shouldReturnMatchingIdsReturnedByHibernateQuery() {
+        List<Integer> expected = Arrays.asList(1, 2, 3);
+        when(idHibernateQuery.getResultList()).thenReturn(expected);
+
+        List<Integer> actual = patientDao.findMatchingIds(searchCondition(), null, "desc", null, 100);
+
+        assertThat(actual, is(expected));
     }
 
     @Test
     public void shouldOrderByPatientIdDescWhenSortOrderIsDesc() {
-        when(hibernateQuery.getResultList()).thenReturn(Collections.emptyList());
+        when(idHibernateQuery.getResultList()).thenReturn(Collections.emptyList());
 
-        patientDao.searchPatients(searchCondition(), null, "desc", null, 100);
+        patientDao.findMatchingIds(searchCondition(), null, "desc", null, 100);
 
         verify(criteriaBuilder, times(1)).desc(patientIdPath);
-        verify(criteriaQuery, times(1)).orderBy(any(Order.class));
+        verify(idCriteriaQuery, times(1)).orderBy(any(Order.class));
     }
 
     private SearchCondition searchCondition() {

@@ -42,12 +42,14 @@ import org.openmrs.api.context.Context;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+
 
 import static java.util.stream.Collectors.toList;
 
@@ -76,8 +78,42 @@ public class PatientDaoImpl implements PatientDao {
     private static final String FIELD_PATIENT_ID = "patientId";
 
     @Override
-    public List<Patient> searchPatients(SearchCondition criteria, Long cursorId,
-                                         String sortOrder, String direction, int limit) {
+    public List<Integer> findMatchingIds(SearchCondition criteria, Long cursorId,
+                                          String sortOrder, String direction, int limit) {
+        Session session = sessionFactory.getCurrentSession();
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+
+        CriteriaQuery<Integer> query = cb.createQuery(Integer.class);
+        Root<Patient> root = query.from(Patient.class);
+
+        List<Predicate> predicates = buildBasePredicates(cb, root, criteria);
+
+        boolean queryDescending = PaginationHelper.shouldSortQueryDescending(sortOrder, direction);
+        if (cursorId != null) {
+            if (queryDescending) {
+                predicates.add(cb.lessThan(root.get(FIELD_PATIENT_ID), cursorId));
+            } else {
+                predicates.add(cb.greaterThan(root.get(FIELD_PATIENT_ID), cursorId));
+            }
+        }
+
+        query.select(root.get(FIELD_PATIENT_ID)).distinct(true);
+        query.where(predicates.toArray(new Predicate[0]));
+        query.orderBy(queryDescending
+                ? cb.desc(root.get(FIELD_PATIENT_ID))
+                : cb.asc(root.get(FIELD_PATIENT_ID)));
+
+        return session.createQuery(query)
+                .setMaxResults(limit)
+                .getResultList();
+    }
+
+    @Override
+    public List<Patient> findByIds(List<Integer> patientIds) {
+        if (patientIds == null || patientIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         Session session = sessionFactory.getCurrentSession();
         CriteriaBuilder cb = session.getCriteriaBuilder();
 
@@ -88,28 +124,22 @@ public class PatientDaoImpl implements PatientDao {
         root.fetch(FETCH_IDENTIFIERS, JoinType.LEFT);
         root.fetch(FETCH_ATTRIBUTES, JoinType.LEFT);
 
-        List<Predicate> predicates = buildBasePredicates(cb, root, criteria);
+        query.select(root).distinct(true);
+        query.where(root.get(FIELD_PATIENT_ID).in(patientIds));
 
-        boolean queryDescending = PaginationHelper.resolveQueryDescending(sortOrder, direction);
-        if (cursorId != null) {
-            if (queryDescending) {
-                predicates.add(cb.lessThan(root.get(FIELD_PATIENT_ID), cursorId.intValue()));
-            } else {
-                predicates.add(cb.greaterThan(root.get(FIELD_PATIENT_ID), cursorId.intValue()));
-            }
-        }
-
-        query.select(root).distinct(true)
-                .where(predicates.toArray(new Predicate[0]))
-                .orderBy(queryDescending
-                        ? cb.desc(root.get(FIELD_PATIENT_ID))
-                        : cb.asc(root.get(FIELD_PATIENT_ID)));
-
-        return session.createQuery(query)
+        List<Patient> patients = session.createQuery(query)
                 .setHint(PaginationHelper.HINT_PASS_DISTINCT_THROUGH, false)
-                .setMaxResults(limit)
                 .getResultList();
+
+        return reorderByIds(patients, patientIds);
     }
+
+    private List<Patient> reorderByIds(List<Patient> patients, List<Integer> orderedIds) {
+        List<Patient> reordered = new ArrayList<>(patients);
+        reordered.sort(Comparator.comparingInt(patient -> orderedIds.indexOf(patient.getPatientId())));
+        return reordered;
+    }
+
 
     @Override
     public long countPatients(SearchCondition criteria) {
