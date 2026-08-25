@@ -34,7 +34,11 @@ public class PatientController {
         this.criteriaValidator = criteriaValidator;
     }
 
-    @PostMapping(value ="/search")
+    @PostMapping(
+            value = "/search",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ResponseBody
     public ResponseEntity<PatientSearchResponse> search(@RequestBody PatientSearchRequest request,
                                                         WebRequest webRequest) {

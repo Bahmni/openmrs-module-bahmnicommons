@@ -8,7 +8,6 @@ import org.bahmni.module.bahmnicommons.api.search.builder.PatientResponseBuilder
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchRequest;
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchResponse;
 import org.bahmni.search.cursor.CursorCodec;
-import org.bahmni.search.exceptions.InvalidSearchCriteriaException;
 import org.bahmni.search.model.PaginationRequest;
 import org.bahmni.search.model.SearchCondition;
 import org.bahmni.search.model.SearchRequestMeta;
@@ -37,8 +36,17 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class BahmniPatientServiceImplTest {
@@ -57,12 +65,12 @@ public class BahmniPatientServiceImplTest {
 
     @Before
     public void setup() {
-        initMocks(this);
         bahmniPatientService = new BahmniPatientServiceImpl(personService, conceptService, patientDao, patientResponseBuilder, administrationService);
     }
 
     @Test
     public void shouldGetPatientConfig() throws Exception {
+
         List<PersonAttributeType> personAttributeTypes = new ArrayList<>();
         personAttributeTypes.add(new PersonAttributeType() {{
             this.setName("class");
@@ -171,7 +179,8 @@ public class BahmniPatientServiceImplTest {
 
     @Test
     public void shouldUseConfiguredDefaultLimitFromGlobalPropertyForPatientSearch() {
-        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.defaultLimit")).thenReturn("20");
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.defaultLimit")).thenReturn("20");
+
         PatientSearchRequest request = validSearchRequest();
         mockDaoReturns(Collections.<Patient>emptyList());
 
@@ -183,7 +192,8 @@ public class BahmniPatientServiceImplTest {
 
     @Test
     public void shouldUseConfiguredMaxLimitFromGlobalPropertyForPatientSearch() {
-        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.maxLimit")).thenReturn("50");
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.maxLimit")).thenReturn("50");
+
         PatientSearchRequest request = searchRequestWithPagination(1000, null, null);
         mockDaoReturns(Collections.<Patient>emptyList());
 
@@ -193,17 +203,23 @@ public class BahmniPatientServiceImplTest {
                 any(SearchCondition.class), isNull(Long.class), anyString(), isNull(String.class), eq(51));
     }
 
-    @Test(expected = InvalidSearchCriteriaException.class)
-    public void shouldThrowWhenConfiguredMaxLimitGlobalPropertyIsNonPositiveForPatientSearch() {
-        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.maxLimit")).thenReturn("0");
-        PatientSearchRequest request = validSearchRequest();
+    @Test
+    public void shouldFallbackToDefaultMaxLimitWhenConfiguredMaxLimitGlobalPropertyIsNonPositiveForPatientSearch() {
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.maxLimit")).thenReturn("0");
+
+        PatientSearchRequest request = searchRequestWithPagination(1000, null, null);
+        mockDaoReturns(Collections.<Patient>emptyList());
 
         bahmniPatientService.search(request);
+
+        verify(patientDao, times(1)).findMatchingIds(
+                any(SearchCondition.class), isNull(Long.class), anyString(), isNull(String.class), eq(501));
     }
 
     @Test
     public void shouldFallbackToDefaultWhenGlobalPropertyIsInvalidForPatientSearch() {
-        when(administrationService.getGlobalProperty("bahmni.patientSearch.pagination.defaultLimit")).thenReturn("not-a-number");
+        when(administrationService.getGlobalProperty("bahmni.search.pagination.defaultLimit")).thenReturn("not-a-number");
+
         PatientSearchRequest request = validSearchRequest();
         mockDaoReturns(Collections.<Patient>emptyList());
 

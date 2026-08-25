@@ -180,6 +180,16 @@ public class PatientDaoImplSearchTest {
     }
 
     @Test
+    public void shouldExcludeVoidedPatientsWhenFindingByIds() {
+        when(hibernateQuery.getResultList()).thenReturn(Collections.emptyList());
+
+        patientDao.findByIds(Arrays.asList(1));
+
+        verify(criteriaBuilder, times(1)).isFalse(voidedPath);
+        verify(criteriaQuery, times(1)).where(inPredicate, voidedPredicate);
+    }
+
+    @Test
     public void shouldExcludeVoidedPatientsWhenFindingMatchingIds() {
         when(idHibernateQuery.getResultList()).thenReturn(Collections.emptyList());
 

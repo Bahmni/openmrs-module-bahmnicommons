@@ -42,7 +42,6 @@ import org.openmrs.api.context.Context;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -125,21 +124,16 @@ public class PatientDaoImpl implements PatientDao {
         root.fetch(FETCH_ATTRIBUTES, JoinType.LEFT);
 
         query.select(root).distinct(true);
-        query.where(root.get(FIELD_PATIENT_ID).in(patientIds));
+        query.where(
+                root.get(FIELD_PATIENT_ID).in(patientIds),
+                cb.isFalse(root.get(FIELD_VOIDED)));
 
         List<Patient> patients = session.createQuery(query)
                 .setHint(PaginationHelper.HINT_PASS_DISTINCT_THROUGH, false)
                 .getResultList();
 
-        return reorderByIds(patients, patientIds);
+        return PaginationHelper.reorderByIds(patients, patientIds, Patient::getPatientId);
     }
-
-    private List<Patient> reorderByIds(List<Patient> patients, List<Integer> orderedIds) {
-        List<Patient> reordered = new ArrayList<>(patients);
-        reordered.sort(Comparator.comparingInt(patient -> orderedIds.indexOf(patient.getPatientId())));
-        return reordered;
-    }
-
 
     @Override
     public long countPatients(SearchCondition criteria) {

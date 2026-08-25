@@ -30,6 +30,9 @@
         <constructor-arg ref="sessionFactory"/>
     </bean>
 
+    <bean id="patientResponseBuilder" class="org.bahmni.module.bahmnicommons.api.search.builder.PatientResponseBuilder"/>
+
+
     <bean id="bahmniPatientService" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager">
             <ref bean="transactionManager"/>
@@ -39,7 +42,10 @@
                 <constructor-arg ref="personService"/>
                 <constructor-arg ref="conceptService"/>
                 <constructor-arg ref="patientDao"/>
+                <constructor-arg ref="patientResponseBuilder"/>
+                <constructor-arg ref="adminService"/>
             </bean>
+
         </property>
         <property name="preInterceptors">
             <ref bean="serviceInterceptors"/>

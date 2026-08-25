@@ -41,11 +41,11 @@ import java.util.function.Supplier;
 public class BahmniPatientServiceImpl implements BahmniPatientService {
     private static final String ENTITY_PATIENT = "patient";
 
-    private static final String GP_PAGINATION_DEFAULT_LIMIT = "bahmni.patientSearch.pagination.defaultLimit";
-    private static final String GP_PAGINATION_MAX_LIMIT = "bahmni.patientSearch.pagination.maxLimit";
+    private static final String GP_PAGINATION_DEFAULT_LIMIT = "bahmni.search.pagination.defaultLimit";
+    private static final String GP_PAGINATION_MAX_LIMIT = "bahmni.search.pagination.maxLimit";
+
     private static final int FALLBACK_DEFAULT_LIMIT = 100;
     private static final int FALLBACK_MAX_LIMIT = 500;
-
 
     private PersonService personService;
     private ConceptService conceptService;
@@ -54,17 +54,6 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
     private final AdministrationService administrationService;
 
     private static final Logger log = LogManager.getLogger(BahmniPatientServiceImpl.class);
-
-    //@Autowired
-    public BahmniPatientServiceImpl(PersonService personService, ConceptService conceptService,
-                                    PatientDao patientDao) {
-        this(personService, conceptService, patientDao, new PatientResponseBuilder());
-    }
-
-    public BahmniPatientServiceImpl(PersonService personService, ConceptService conceptService,
-                                    PatientDao patientDao, PatientResponseBuilder patientResponseBuilder) {
-        this(personService, conceptService, patientDao, patientResponseBuilder, Context.getAdministrationService());
-    }
 
     public BahmniPatientServiceImpl(PersonService personService, ConceptService conceptService,
                                     PatientDao patientDao, PatientResponseBuilder patientResponseBuilder,
@@ -147,10 +136,15 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
                 request.getCriteria(), resolved.getCursorId(), resolved.getSortOrder(),
                 resolved.getDirection(), resolved.getFetchSize());
 
-        List<Patient> rawPatients = patientDao.findByIds(matchingIds);
+        boolean hasMore = PaginationHelper.hasMore(matchingIds.size(), resolved.getEffectiveLimit());
+        List<Integer> idsToFetch = hasMore
+                ? matchingIds.subList(0, resolved.getEffectiveLimit())
+                : matchingIds;
+
+        List<Patient> rawPatients = patientDao.findByIds(idsToFetch);
 
         PageResult<Patient> pageResult = PaginationHelper.paginate(
-                ENTITY_PATIENT, rawPatients, Patient::getPatientId, resolved);
+                ENTITY_PATIENT, rawPatients, Patient::getPatientId, resolved, hasMore);
 
         List<Map<String, Object>> results = new ArrayList<>();
         for (Patient patient : pageResult.getItems()) {
