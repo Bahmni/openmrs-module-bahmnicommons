@@ -99,6 +99,15 @@
             <version>1.19.0</version>
         </dependency>
 
+        <!-- Hibernate Search 6 is shipped by OpenMRS 2.6+; declared provided so HS6 classes
+             are available at compile time but never bundled in the omod -->
+        <dependency>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-mapper-orm</artifactId>
+            <version>6.2.4.Final</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
