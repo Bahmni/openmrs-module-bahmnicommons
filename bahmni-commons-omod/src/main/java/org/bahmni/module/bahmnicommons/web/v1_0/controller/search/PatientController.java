@@ -17,7 +17,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.WebRequest;
 
 @Controller("bahmniCommonsPatientSearchController")
-@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/patient/search")
+@RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/patient")
 public class PatientController {
 
     private static final String SUPPORTED_ENTITY = "patient";
@@ -34,7 +34,11 @@ public class PatientController {
         this.criteriaValidator = criteriaValidator;
     }
 
-    @PostMapping()
+    @PostMapping(
+            value = "/search",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @ResponseBody
     public ResponseEntity<PatientSearchResponse> search(@RequestBody PatientSearchRequest request,
                                                         WebRequest webRequest) {

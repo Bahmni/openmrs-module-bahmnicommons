@@ -11,6 +11,11 @@ import org.bahmni.module.bahmnicommons.api.search.builder.PatientResponseBuilder
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchRequest;
 import org.bahmni.module.bahmnicommons.api.search.dto.PatientSearchResponse;
 import org.bahmni.module.bahmnicommons.api.service.BahmniPatientService;
+import org.bahmni.search.model.SearchRequestMeta;
+import org.bahmni.search.model.SearchResponseMeta;
+import org.bahmni.search.pagination.PageResult;
+import org.bahmni.search.pagination.PaginationHelper;
+import org.bahmni.search.pagination.ResolvedPagination;
 import org.bahmni.module.bahmnicommons.api.visitlocation.BahmniVisitLocationServiceImpl;
 import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
 import org.openmrs.Concept;
@@ -18,9 +23,11 @@ import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.RelationshipType;
+import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.PersonService;
 import org.openmrs.api.context.Context;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,26 +41,30 @@ import java.util.function.Supplier;
 public class BahmniPatientServiceImpl implements BahmniPatientService {
     private static final String ENTITY_PATIENT = "patient";
 
+    private static final String GP_PAGINATION_DEFAULT_LIMIT = "bahmni.search.pagination.defaultLimit";
+    private static final String GP_PAGINATION_MAX_LIMIT = "bahmni.search.pagination.maxLimit";
+
+    private static final int FALLBACK_DEFAULT_LIMIT = 100;
+    private static final int FALLBACK_MAX_LIMIT = 500;
+
     private PersonService personService;
     private ConceptService conceptService;
     private PatientDao patientDao;
     private final PatientResponseBuilder patientResponseBuilder;
+    private final AdministrationService administrationService;
 
     private static final Logger log = LogManager.getLogger(BahmniPatientServiceImpl.class);
 
-    //@Autowired
     public BahmniPatientServiceImpl(PersonService personService, ConceptService conceptService,
-                                    PatientDao patientDao) {
-        this(personService, conceptService, patientDao, new PatientResponseBuilder());
-    }
-
-    public BahmniPatientServiceImpl(PersonService personService, ConceptService conceptService,
-                                    PatientDao patientDao, PatientResponseBuilder patientResponseBuilder) {
+                                    PatientDao patientDao, PatientResponseBuilder patientResponseBuilder,
+                                    AdministrationService administrationService) {
         this.personService = personService;
         this.conceptService = conceptService;
         this.patientDao = patientDao;
         this.patientResponseBuilder = patientResponseBuilder;
+        this.administrationService = administrationService;
     }
+
 
     @Override
     public PatientConfigResponse getConfig() {
@@ -113,16 +124,38 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
 
     @Override
     public PatientSearchResponse search(PatientSearchRequest request) {
-        List<Patient> patients = patientDao.searchPatients(request.getCriteria());
-        if (patients.isEmpty()) {
-            return PatientSearchResponse.success(ENTITY_PATIENT, new ArrayList<>());
-        }
+        SearchRequestMeta meta = request.getMeta();
+        int defaultLimit = PaginationHelper.resolveGlobalProperty(
+                administrationService.getGlobalProperty(GP_PAGINATION_DEFAULT_LIMIT), FALLBACK_DEFAULT_LIMIT, GP_PAGINATION_DEFAULT_LIMIT);
+        int maxLimit = PaginationHelper.resolveGlobalProperty(
+                administrationService.getGlobalProperty(GP_PAGINATION_MAX_LIMIT), FALLBACK_MAX_LIMIT, GP_PAGINATION_MAX_LIMIT);
+
+        ResolvedPagination resolved = PaginationHelper.resolvePaginationContext(meta, ENTITY_PATIENT, defaultLimit, maxLimit);
+
+        List<Integer> matchingIds = patientDao.findMatchingIds(
+                request.getCriteria(), resolved.getCursorId(), resolved.getSortOrder(),
+                resolved.getDirection(), resolved.getFetchSize());
+
+        boolean hasMore = PaginationHelper.hasMore(matchingIds.size(), resolved.getEffectiveLimit());
+        List<Integer> idsToFetch = hasMore
+                ? matchingIds.subList(0, resolved.getEffectiveLimit())
+                : matchingIds;
+
+        List<Patient> rawPatients = patientDao.findByIds(idsToFetch);
+
+        PageResult<Patient> pageResult = PaginationHelper.paginate(
+                ENTITY_PATIENT, rawPatients, Patient::getPatientId, resolved, hasMore);
 
         List<Map<String, Object>> results = new ArrayList<>();
-        for (Patient patient : patients) {
+        for (Patient patient : pageResult.getItems()) {
             results.add(patientResponseBuilder.mapPatient(patient));
         }
-        return PatientSearchResponse.success(ENTITY_PATIENT, results);
+
+        Long totalCount = PaginationHelper.resolveTotalCount(meta,
+                () -> patientDao.countPatients(request.getCriteria()));
+
+        SearchResponseMeta responseMeta = new SearchResponseMeta(pageResult.getPaginationResponse(), totalCount);
+        return PatientSearchResponse.success(ENTITY_PATIENT, results, responseMeta);
     }
 
     private Location getVisitLocation(String loginLocationUuid) {
@@ -135,3 +168,5 @@ public class BahmniPatientServiceImpl implements BahmniPatientService {
     }
 
 }
+
+

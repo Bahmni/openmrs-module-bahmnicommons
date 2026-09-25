@@ -29,6 +29,7 @@
                 <constructor-arg ref="conceptService"/>
                 <constructor-arg ref="patientDao"/>
                 <constructor-arg ref="patientResponseBuilder"/>
+                <constructor-arg ref="adminService"/>
             </bean>
         </property>
 
