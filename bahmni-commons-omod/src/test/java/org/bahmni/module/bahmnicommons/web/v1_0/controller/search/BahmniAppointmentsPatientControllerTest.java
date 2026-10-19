@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.openmrs.*;
 import org.openmrs.api.PatientService;
@@ -48,7 +48,7 @@ public class BahmniAppointmentsPatientControllerTest extends BaseIntegrationTest
         Patient patient = new Patient();
         patient.setPersonId(1);
         patients.add(patient);
-        when(patientService.getPatients(Matchers.anyString())).thenReturn(patients);
+        when(patientService.getPatients(ArgumentMatchers.anyString())).thenReturn(patients);
     }
     
     @Test

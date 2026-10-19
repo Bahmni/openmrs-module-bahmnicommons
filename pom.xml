@@ -39,20 +39,19 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <openMRSVersion>2.8.9</openMRSVersion>
         <openMRSWebServicesVersion>2.29.0</openMRSWebServicesVersion>
-        <springVersion>5.2.14.RELEASE</springVersion>
+        <springVersion>5.3.30</springVersion>
         <addressHierarchyVersion>2.14.2</addressHierarchyVersion>
         <reportingModuleVersion>1.23.0</reportingModuleVersion>
         <calculationModuleVersion>1.3.0</calculationModuleVersion>
         <serializationXstreamModuleVersion>0.2.15</serializationXstreamModuleVersion>
-        <lombokVersion>1.16.0</lombokVersion>
+        <lombokVersion>1.18.30</lombokVersion>
         <idgenVersion>4.7.0</idgenVersion>
         <javaxMail.version>1.6.2</javaxMail.version>
         <searchCommonsVersion>1.2.0</searchCommonsVersion>
         <!--test dependencies-->
         <junitVersion>4.13</junitVersion>
-        <powerMockVersion>2.0.7</powerMockVersion>
         <hamcrestVersion>1.3</hamcrestVersion>
-        <mockitoVersion>3.12.4</mockitoVersion>
+        <mockitoVersion>5.7.0</mockitoVersion>
         <argLine>-Xmx1024m</argLine>
         <jacocoVersion>0.8.8</jacocoVersion>
     </properties>
@@ -104,7 +103,7 @@
             <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
-                <version>3.0.1</version>
+                <version>3.1.0</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -160,18 +159,6 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powerMockVersion}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powerMockVersion}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.openmrs.api</groupId>
                 <artifactId>openmrs-api</artifactId>
                 <version>${openMRSVersion}</version>
@@ -215,8 +202,8 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
-                        <target>1.8</target>
-                        <source>1.8</source>
+                        <target>17</target>
+                        <source>17</source>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -273,7 +260,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.10</version>
+                    <version>3.2.5</version>
                     <configuration>
                         <includes>
                             <include>**/*Test.java</include>
@@ -306,7 +293,7 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
-                                    <argLine>-Xmx512m</argLine>
+                                    <argLine>-Xmx512m --add-opens java.base/java.util=ALL-UNNAMED</argLine>
                                     <includes>
                                         <include>**/*IT.java</include>
                                     </includes>
