@@ -4,8 +4,6 @@ package org.bahmni.module.bahmnicommons.api.dao.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
 
 import org.bahmni.module.bahmnicommons.api.contract.patient.PatientSearchParameters;
 import org.bahmni.module.bahmnicommons.api.contract.patient.mapper.PatientResponseMapper;
@@ -18,17 +16,16 @@ import org.bahmni.module.bahmnicommons.api.dao.PatientDao;
 import org.bahmni.search.model.SearchCondition;
 import org.bahmni.search.pagination.PaginationHelper;
 import org.hibernate.SQLQuery;
-import org.hibernate.search.query.dsl.MustJunction;
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
+import org.hibernate.search.engine.search.predicate.dsl.PredicateFinalStep;
+import org.hibernate.search.engine.search.predicate.dsl.SearchPredicateFactory;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.openmrs.ProgramAttributeType;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.search.FullTextQuery;
-import org.hibernate.search.FullTextSession;
-import org.hibernate.search.Search;
-import org.hibernate.search.query.dsl.BooleanJunction;
-import org.hibernate.search.query.dsl.QueryBuilder;
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.PatientIdentifier;
@@ -42,11 +39,13 @@ import org.openmrs.api.context.Context;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -298,66 +297,78 @@ public class PatientDaoImpl implements PatientDao {
         return false;
     }
 
+    /**
+     * Results keep Hibernate Search's relevance order. Equal scores are tie-broken by personNameId, but only
+     * within the page returned by fetchHits(offset, length); the order of ties across page boundaries still
+     * follows Lucene document order.
+     */
     private List<PersonName> getPatientsByName(String name, Integer offset, Integer length) {
-        FullTextSession fullTextSession = Search.getFullTextSession(sessionFactory.getCurrentSession());
-        QueryBuilder queryBuilder = fullTextSession.getSearchFactory().buildQueryBuilder().forEntity(PersonName.class).get();
-        org.apache.lucene.search.Query nonVoidedNames = queryBuilder.keyword().onField("voided").matching(false).createQuery();
-        org.apache.lucene.search.Query nonVoidedPersons = queryBuilder.keyword().onField("person.voided").matching(false).createQuery();
-
-
-        MustJunction mustJunction = queryBuilder.bool()
-                .must(nonVoidedNames)
-                .must(nonVoidedPersons);
-        String[] names = name.trim().split(" ");
-        for(int i=0; i<names.length;i++) {
-            BooleanJunction<?> booleanJunction = queryInAllNameTypes(names[i].replace('%', '*'), queryBuilder);
-            mustJunction.must(booleanJunction.createQuery());
-        }
-
-        org.apache.lucene.search.Query booleanQuery =mustJunction.createQuery();
-        FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(booleanQuery, PersonName.class);
-        fullTextQuery.setFirstResult(offset);
-        fullTextQuery.setMaxResults(length);
-        return (List<PersonName>) fullTextQuery.list();
+        SearchSession searchSession = Search.session(sessionFactory.getCurrentSession());
+        String[] nameTokens = name.trim().split(" ");
+        List<ScoredHit<PersonName>> hits = searchSession.search(PersonName.class)
+                .select(f -> f.composite((PersonName personName, Float score) -> new ScoredHit<>(personName, score),
+                        f.entity(), f.score()))
+                .where(f -> {
+                    BooleanPredicateClausesStep<?> bool = f.bool();
+                    bool.must(f.match().field("voided").matching(false));
+                    bool.must(f.match().field("person.voided").matching(false));
+                    for (String token : nameTokens) {
+                        bool.must(buildNameQuery(f, token.replace('%', '*')));
+                    }
+                    return bool;
+                })
+                .fetchHits(offset, length);
+        return orderByScoreThenId(hits, personName -> personName.getPersonNameId());
     }
 
-    private BooleanJunction<?> queryInAllNameTypes(String name, QueryBuilder queryBuilder) {
-        BooleanJunction<?> nameShouldJunction = queryBuilder.bool();
-        if(name.length() == 1) {
-            List<String> patientNames = getPatientNames(LuceneFilter.EXACT.matchType);
-            updateNameQueryByFilter(nameShouldJunction, name, queryBuilder, patientNames, "", "");
-        }
-        return filterPatientNames(nameShouldJunction, name, queryBuilder);
+    /**
+     * Hibernate Search breaks relevance ties by Lucene document order, which depends on the order in
+     * which the mass indexer loaded entities (it is multi-threaded, and Bahmni forces a full reindex on
+     * every startup). Keep the relevance ranking but break equal scores by entity id so equally relevant
+     * matches are always returned in the same order.
+     */
+    private static <T> List<T> orderByScoreThenId(List<ScoredHit<T>> hits, Function<T, Integer> idOf) {
+        List<ScoredHit<T>> ordered = new ArrayList<>(hits);
+        ordered.sort(Comparator.<ScoredHit<T>, Float>comparing(hit -> hit.score, Comparator.reverseOrder())
+                .thenComparing(hit -> idOf.apply(hit.entity)));
+        return ordered.stream().map(hit -> hit.entity).collect(toList());
     }
 
-    public BooleanJunction<?> filterPatientNames(BooleanJunction<?> nameShouldJunction, String name, QueryBuilder queryBuilder) {
-        String luceneFilter = System.getenv("LUCENE_MATCH_TYPE") == null? "ANYWHERE":System.getenv("LUCENE_MATCH_TYPE");
-        List<String> patientNames;
-        String wildcardPrefix = "";
-        String wildcardSuffix = "";
+    private static final class ScoredHit<T> {
+        private final T entity;
+        private final Float score;
+
+        private ScoredHit(T entity, Float score) {
+            this.entity = entity;
+            this.score = score;
+        }
+    }
+
+    private PredicateFinalStep buildNameQuery(SearchPredicateFactory f, String name) {
+        BooleanPredicateClausesStep<?> nameShouldJunction = f.bool();
+        if (name.length() == 1) {
+            addNameFieldQueries(f, nameShouldJunction, name, LuceneFilter.EXACT.matchType, "", "");
+        }
+        String luceneFilter = System.getenv("LUCENE_MATCH_TYPE") == null ? "ANYWHERE" : System.getenv("LUCENE_MATCH_TYPE");
         switch (luceneFilter.toUpperCase()) {
             case "EXACT":
-                patientNames = getPatientNames(LuceneFilter.EXACT.matchType);
+                addNameFieldQueries(f, nameShouldJunction, name, LuceneFilter.EXACT.matchType, "", "");
                 break;
             case "START":
-                patientNames = getPatientNames(LuceneFilter.START.matchType);
-                wildcardSuffix = "*";
+                addNameFieldQueries(f, nameShouldJunction, name, LuceneFilter.START.matchType, "", "*");
                 break;
             default:
-                patientNames = getPatientNames(LuceneFilter.ANYWHERE.matchType);
-                wildcardPrefix = "*";
-                wildcardSuffix = "*";
+                addNameFieldQueries(f, nameShouldJunction, name, LuceneFilter.ANYWHERE.matchType, "*", "*");
                 break;
         }
-        updateNameQueryByFilter(nameShouldJunction, name, queryBuilder, patientNames, wildcardPrefix, wildcardSuffix);
         return nameShouldJunction;
     }
 
-    private static void updateNameQueryByFilter(BooleanJunction<?> nameShouldJunction, String name, QueryBuilder queryBuilder, List<String> patientNames, String wildcardPrefix, String wildcardSuffix) {
-        for (String patientName : patientNames) {
-            org.apache.lucene.search.Query nameQuery = queryBuilder.keyword().wildcard()
-                    .onField(patientName).matching(wildcardPrefix + name.toLowerCase() + wildcardSuffix).createQuery();
-            nameShouldJunction.should(nameQuery);
+    private void addNameFieldQueries(SearchPredicateFactory f, BooleanPredicateClausesStep<?> nameShouldJunction,
+                                     String name, String filter, String wildcardPrefix, String wildcardSuffix) {
+        for (String patientName : getPatientNames(filter)) {
+            nameShouldJunction.should(f.wildcard().field(patientName)
+                    .matching(wildcardPrefix + name.toLowerCase() + wildcardSuffix));
         }
     }
 
@@ -371,40 +382,31 @@ public class PatientDaoImpl implements PatientDao {
     }
 
     private List<PatientIdentifier> getPatientIdentifiers(String identifier, Boolean filterOnAllIdentifiers, Integer offset, Integer length) {
-        FullTextSession fullTextSession = Search.getFullTextSession(sessionFactory.getCurrentSession());
-        QueryBuilder queryBuilder = fullTextSession.getSearchFactory().buildQueryBuilder().forEntity(PatientIdentifier.class).get();
-        identifier = identifier.replace('%', '*');
-        org.apache.lucene.search.Query identifierQuery;
-        if (identifier.length() <= MAX_NGRAM_SIZE) {
-            identifierQuery = queryBuilder.keyword()
-                    .wildcard().onField("identifierAnywhere").matching("*" + identifier.toLowerCase() + "*").createQuery();
-        } else {
-            identifierQuery = queryBuilder.keyword()
-                    .onField("identifierExact").matching(identifier.toLowerCase()).createQuery();
-        }
-        org.apache.lucene.search.Query nonVoidedIdentifiers = queryBuilder.keyword().onField("voided").matching(false).createQuery();
-        org.apache.lucene.search.Query nonVoidedPatients = queryBuilder.keyword().onField("patient.voided").matching(false).createQuery();
-
+        SearchSession searchSession = Search.session(sessionFactory.getCurrentSession());
+        final String processedIdentifier = identifier.replace('%', '*');
         List<String> identifierTypeNames = getIdentifierTypeNames(filterOnAllIdentifiers);
-
-        BooleanJunction<?> identifierTypeShouldJunction = queryBuilder.bool();
-        for (String identifierTypeName : identifierTypeNames) {
-            org.apache.lucene.search.Query identifierTypeQuery = queryBuilder.phrase().onField("identifierType.name").sentence(identifierTypeName).createQuery();
-            identifierTypeShouldJunction.should(identifierTypeQuery);
-        }
-
-        org.apache.lucene.search.Query booleanQuery = queryBuilder.bool()
-                .must(identifierQuery)
-                .must(nonVoidedIdentifiers)
-                .must(nonVoidedPatients)
-                .must(identifierTypeShouldJunction.createQuery())
-                .createQuery();
-        Sort sort = new Sort(new SortField("identifierExact", SortField.Type.STRING, false));
-        FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(booleanQuery, PatientIdentifier.class);
-        fullTextQuery.setSort(sort);
-        fullTextQuery.setFirstResult(offset);
-        fullTextQuery.setMaxResults(length);
-        return (List<PatientIdentifier>) fullTextQuery.list();
+        return searchSession.search(PatientIdentifier.class)
+                .where(f -> {
+                    BooleanPredicateClausesStep<?> bool = f.bool();
+                    if (processedIdentifier.length() <= MAX_NGRAM_SIZE) {
+                        bool.must(f.wildcard().field("identifierAnywhere")
+                                .matching("*" + processedIdentifier.toLowerCase() + "*"));
+                    } else {
+                        bool.must(f.match().field("identifierExact").matching(processedIdentifier.toLowerCase()));
+                    }
+                    bool.must(f.match().field("voided").matching(false));
+                    bool.must(f.match().field("patient.voided").matching(false));
+                    BooleanPredicateClausesStep<?> identifierTypeShouldJunction = f.bool();
+                    for (String identifierTypeName : identifierTypeNames) {
+                        identifierTypeShouldJunction.should(f.phrase().field("identifierType.name").matching(identifierTypeName));
+                    }
+                    if (!identifierTypeNames.isEmpty()) {
+                        bool.must(identifierTypeShouldJunction);
+                    }
+                    return bool;
+                })
+                .sort(f -> f.field("identifierExact_sort").asc())
+                .fetchHits(offset, length);
     }
 
     private List<String> getIdentifierTypeNames(Boolean filterOnAllIdentifiers) {

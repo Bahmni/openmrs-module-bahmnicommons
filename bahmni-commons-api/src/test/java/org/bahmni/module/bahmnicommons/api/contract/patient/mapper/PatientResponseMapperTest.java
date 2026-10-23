@@ -2,31 +2,31 @@ package org.bahmni.module.bahmnicommons.api.contract.patient.mapper;
 
 import org.bahmni.module.bahmnicommons.api.contract.patient.response.PatientResponse;
 import org.bahmni.module.bahmnicommons.api.visitlocation.BahmniVisitLocationServiceImpl;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.internal.util.collections.Sets;
 import org.openmrs.*;
 import org.openmrs.api.ConceptNameType;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.VisitService;
 import org.openmrs.api.context.Context;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Context.class)
-@PowerMockIgnore("javax.management.*")
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PatientResponseMapperTest {
+
+    private MockedStatic<Context> mockedContext;
 
     private PatientResponseMapper patientResponseMapper;
 
@@ -45,15 +45,15 @@ public class PatientResponseMapperTest {
     public void setUp() throws Exception {
         patient = new Patient();
         Location location = new Location(1);
-        PowerMockito.mockStatic(Context.class);
+        mockedContext = Mockito.mockStatic(Context.class);
         Visit visit = new Visit(1);
         visit.setUuid("someLocationUUid");
         visit.setLocation(location);
         List<Visit> visits = new ArrayList<>();
         visits.add(visit);
-        PowerMockito.when(visitService.getActiveVisitsByPatient(patient)).thenReturn(visits);
-        PowerMockito.when(Context.getVisitService()).thenReturn(visitService);
-        PowerMockito.when(bahmniCommonsVisitLocationService.getVisitLocation(eq(null))).thenReturn(location);
+        when(visitService.getActiveVisitsByPatient(patient)).thenReturn(visits);
+        mockedContext.when(Context::getVisitService).thenReturn(visitService);
+        when(bahmniCommonsVisitLocationService.getVisitLocation(eq(null))).thenReturn(location);
 
         patientResponseMapper = new PatientResponseMapper(Context.getVisitService(), bahmniCommonsVisitLocationService);
         patient.setPatientId(12);
@@ -63,6 +63,11 @@ public class PatientResponseMapperTest {
         primaryIdentifier.setPreferred(true);
         patient.setIdentifiers(Sets.newSet(primaryIdentifier, extraIdentifier));
 
+    }
+
+    @After
+    public void tearDown() {
+        mockedContext.close();
     }
 
     @Test
@@ -109,11 +114,9 @@ public class PatientResponseMapperTest {
         conceptName.setLocale(defaultLocale);
         concept.setFullySpecifiedName(conceptName);
         conceptName.setConceptNameType(ConceptNameType.FULLY_SPECIFIED);
-        PowerMockito.mockStatic(Context.class);
-        PowerMockito.when(Context.getLocale()).thenReturn(defaultLocale);
-
-        when(Context.getConceptService()).thenReturn(conceptService);
-        PowerMockito.when(conceptService.getConcept("100")).thenReturn(concept);
+        mockedContext.when(Context::getLocale).thenReturn(defaultLocale);
+        mockedContext.when(Context::getConceptService).thenReturn(conceptService);
+        when(conceptService.getConcept("100")).thenReturn(concept);
 
         PatientResponse patientResponse = patientResponseMapper.map(patient, null, patientResultFields, null, null);
 

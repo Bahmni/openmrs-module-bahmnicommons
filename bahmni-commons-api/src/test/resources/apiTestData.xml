@@ -164,28 +164,28 @@
     <location location_id="12" name="Independent Location" description="Independent" creator="1" retired="0" retired_by=" 0" uuid="8d6c993e-c2cc-11de-8d34-0010c6affdrt" date_created="2005-09-22 00:00:00" />
 
     <location_tag location_tag_id="1" name="Visit Location" creator="1" date_created="2005-01-01 00:00:00.0" retired="false" uuid="c36006e5-9fbb-4f20-876b-0ece245623a1"/>
-    <location_tag_map location_id="6" location_tag_id="1" />
-    <location_tag_map location_id="2" location_tag_id="1" />
+    <location_tag_map location_id="6" location_tag_id="1"/>
+    <location_tag_map location_id="2" location_tag_id="1"/>
     <location_tag location_tag_id="2" name="Login Location" creator="1" date_created="2005-01-01 00:00:00.0" retired="false" uuid="c36006e5-9fbb-4f20-876b-0ece565623a1"/>
-    <location_tag_map location_id="7" location_tag_id="2" />
-    <location_tag_map location_id="8" location_tag_id="2" />
-    <location_tag_map location_id="9" location_tag_id="2" />
-    <location_tag_map location_id="10" location_tag_id="2" />
-    <location_tag_map location_id="11" location_tag_id="2" />
-    <location_tag_map location_id="12" location_tag_id="2" />
+    <location_tag_map location_id="7" location_tag_id="2"/>
+    <location_tag_map location_id="8" location_tag_id="2"/>
+    <location_tag_map location_id="9" location_tag_id="2"/>
+    <location_tag_map location_id="10" location_tag_id="2"/>
+    <location_tag_map location_id="11" location_tag_id="2"/>
+    <location_tag_map location_id="12" location_tag_id="2"/>
 
-    <person_address person_address_id="1" person_id="1025" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="2" person_id="1026" preferred="true" city_village="Bilaspur" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="3" person_id="103" preferred="true" city_village="Bilaspur" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="4" person_id="1062" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="5" person_id="1063" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="6" person_id="1064" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="7" person_id="1065" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="8" person_id="1066" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="9" person_id="1067" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="10" person_id="1068" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="11" person_id="1069" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
-    <person_address person_address_id="12" person_id="1070" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="1" uuid="person-address-uuid-1" person_id="1025" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="2" uuid="person-address-uuid-2" person_id="1026" preferred="true" city_village="Bilaspur" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="3" uuid="person-address-uuid-3" person_id="103" preferred="true" city_village="Bilaspur" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="4" uuid="person-address-uuid-4" person_id="1062" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="5" uuid="person-address-uuid-5" person_id="1063" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="6" uuid="person-address-uuid-6" person_id="1064" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="7" uuid="person-address-uuid-7" person_id="1065" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="8" uuid="person-address-uuid-8" person_id="1066" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="9" uuid="person-address-uuid-9" person_id="1067" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="10" uuid="person-address-uuid-10" person_id="1068" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="11" uuid="person-address-uuid-11" person_id="1069" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
+    <person_address person_address_id="12" uuid="person-address-uuid-12" person_id="1070" preferred="true" city_village="Ramgarh" state_province="Madhya Pradesh" creator="1" date_created="2006-11-24 10:50:16.0" voided="false" void_reason="" county_district="Dindori" address3="Dindori"/>
 
     <global_property property="bahmni.primaryIdentifierType" property_value="1a339fe9-38bc-4ab3-b180-320988c0b968" uuid="9885827e-26fe-102b-80cb-2017a47871b3"/>
     <global_property property="bahmni.extraPatientIdentifierTypes" property_value="b0d10dc0-d8ce-11e3-9c1a-080020zd9a66,c0e31dc0-d8ee-11e3-9c1a-081220zd9a66" uuid="9885827e-26fe-102b-80cb-2017a4ls71b3"/>
@@ -275,31 +275,31 @@
     <concept_name concept_id="901" name="Systolic Data" locale="en" creator="1" date_created="2005-01-01 00:00:00.0" concept_name_id="2" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb94092afc" concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
     <concept_name concept_id="901" name="Systolic Data" locale="en" creator="1" date_created="2005-01-01 00:00:00.0" concept_name_id="200" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb94092acc" concept_name_type="SHORT" locale_preferred="0"/>
 
-    <concept_set concept_id="901" concept_set="90" concept_set_id="1" creator="1" sort_weight="1" date_created="2005-01-01 00:00:00.0" />
+    <concept_set concept_id="901" concept_set="90" concept_set_id="1" creator="1" sort_weight="1" date_created="2005-01-01 00:00:00.0"  uuid="fixture-concept_set-5"/>
 
     <concept concept_id="9011" retired="0" datatype_id="1" class_id="1" is_set="0" creator="1" date_created="2013-12-04 11:36:42" uuid="systolic_value_uuid" />
     <concept_name concept_id="9011" name="Systolic" locale="en" creator="1" date_created="2005-01-01 00:00:00.0" concept_name_id="3" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb94092afd" concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <concept_set concept_id="9011" concept_set="901" concept_set_id="2" creator="1" sort_weight="1" date_created="2005-01-01 00:00:00.0" />
+    <concept_set concept_id="9011" concept_set="901" concept_set_id="2" creator="1" sort_weight="1" date_created="2005-01-01 00:00:00.0"  uuid="fixture-concept_set-6"/>
 
     <concept concept_id="9012" retired="0" datatype_id="3" class_id="1" is_set="0" creator="1" date_created="2013-12-04 11:36:42" uuid="systolic_abnormal_uuid" />
     <concept_name concept_id="9012" name="Systolic Abnormal" locale="en" creator="1" date_created="2005-01-01 00:00:00.0" concept_name_id="4" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb94092afe" concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <concept_set concept_id="9012" concept_set="901" concept_set_id="3" creator="1" sort_weight="2" date_created="2005-01-01 00:00:00.0" />
-    <concept_answer concept_answer_id="406" concept_id="9012" answer_concept="100" creator="1" date_created="2004-08-12 00:00:00.0"/>
-    <concept_answer concept_answer_id="407" concept_id="9012" answer_concept="200" creator="1" date_created="2004-08-12 00:00:00.0"/>
+    <concept_set concept_id="9012" concept_set="901" concept_set_id="3" creator="1" sort_weight="2" date_created="2005-01-01 00:00:00.0"  uuid="fixture-concept_set-7"/>
+    <concept_answer concept_answer_id="406" concept_id="9012" answer_concept="100" creator="1" date_created="2004-08-12 00:00:00.0" uuid="fixture-concept_answer-1"/>
+    <concept_answer concept_answer_id="407" concept_id="9012" answer_concept="200" creator="1" date_created="2004-08-12 00:00:00.0" uuid="fixture-concept_answer-2"/>
 
     <concept concept_id="902" retired="0" datatype_id="4" class_id="1" is_set="1" creator="1" date_created="2013-12-04 11:36:42" uuid="diastolic_data_uuid" />
     <concept_name concept_id="902" name="Diastolic Data" locale="en" creator="1" date_created="2005-01-01 00:00:00.0" concept_name_id="5" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb94092aff" concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <concept_set concept_id="902" concept_set="90" concept_set_id="4" creator="1" sort_weight="2" date_created="2005-01-01 00:00:00.0" />
+    <concept_set concept_id="902" concept_set="90" concept_set_id="4" creator="1" sort_weight="2" date_created="2005-01-01 00:00:00.0"  uuid="fixture-concept_set-8"/>
 
     <concept concept_id="9021" retired="0" datatype_id="1" class_id="1" is_set="0" creator="1" date_created="2013-12-04 11:36:42" uuid="diastolic_value_uuid" />
     <concept_name concept_id="9021" name="Diastolic" locale="en" creator="1" date_created="2005-01-01 00:00:00.0" concept_name_id="6" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb84093afg" concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <concept_set concept_id="9021" concept_set="902" concept_set_id="5" creator="1" sort_weight="1" date_created="2005-01-01 00:00:00.0" />
+    <concept_set concept_id="9021" concept_set="902" concept_set_id="5" creator="1" sort_weight="1" date_created="2005-01-01 00:00:00.0"  uuid="fixture-concept_set-9"/>
 
     <concept concept_id="9022" retired="0" datatype_id="3" class_id="1" is_set="0" creator="1" date_created="2013-12-04 11:36:42" uuid="diastolic_abnormal_uuid" />
     <concept_name concept_id="9022" name="Diastolic Abnormal" locale="en" creator="1" date_created="2005-01-01 00:00:00.0" concept_name_id="7" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb94092afh" concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>
-    <concept_set concept_id="9022" concept_set="902" concept_set_id="6" creator="1" sort_weight="2" date_created="2005-01-01 00:00:00.0" />
-    <concept_answer concept_answer_id="408" concept_id="9022" answer_concept="100" creator="1" date_created="2004-08-12 00:00:00.0"/>
-    <concept_answer concept_answer_id="409" concept_id="9022" answer_concept="200" creator="1" date_created="2004-08-12 00:00:00.0"/>
+    <concept_set concept_id="9022" concept_set="902" concept_set_id="6" creator="1" sort_weight="2" date_created="2005-01-01 00:00:00.0"  uuid="fixture-concept_set-10"/>
+    <concept_answer concept_answer_id="408" concept_id="9022" answer_concept="100" creator="1" date_created="2004-08-12 00:00:00.0" uuid="fixture-concept_answer-3"/>
+    <concept_answer concept_answer_id="409" concept_id="9022" answer_concept="200" creator="1" date_created="2004-08-12 00:00:00.0" uuid="fixture-concept_answer-4"/>
 
     <!--<concept concept_id="1853" retired="0" datatype_id="3" class_id="1" is_set="0" creator="1" date_created="2015-12-04 11:36:42" uuid="facility_uuid" />-->
     <!--<concept_name concept_id="1853" name="Facility1, City1, Country1" locale="en" creator="1" date_created="2015-01-01 00:00:00.0" concept_name_id="6" voided="false" uuid="5d2d4cb7-955b-4837-80f7-0ebb84093xyz" concept_name_type="FULLY_SPECIFIED" locale_preferred="0"/>-->
@@ -307,7 +307,7 @@
     <location location_id="1" name="OPD Room 1" creator="1" date_created="2005-01-01 00:00:00.0" retired="false" uuid="c36006e5-9fbb-4f20-866b-0ece245615a1"/>
 
     <location_tag location_tag_id="1" name="Visit Location" creator="1" date_created="2005-01-01 00:00:00.0" retired="false" uuid="c36006e5-9fbb-4f20-876b-0ece245615a1"/>
-    <location_tag_map location_id="1" location_tag_id="1" />
+    <location_tag_map location_id="1" location_tag_id="1"/>
 
     <visit_type visit_type_id="1" name="Clinic or Hospital Visit" creator="1" date_created="2012-10-23 18:04:14" changed_by="1" date_changed="2012-10-23 18:04:14" retired="0" uuid="f01c54cb-2225-471a-9cd5-d348552c337c"/>
     <visit visit_id="901" date_started="2008-08-18 00:00:00" date_created="2008-08-18 00:00:00" patient_id="1024" visit_type_id="1" date_stopped="2008-08-20 04:08:16" location_id="2" creator="1" changed_by="1" uuid="ad41fb41-a41a-4ad6-8835-2f59099acf5b" voided="0"/>
