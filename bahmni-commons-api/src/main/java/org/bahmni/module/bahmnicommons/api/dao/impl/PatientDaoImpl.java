@@ -39,13 +39,11 @@ import org.openmrs.api.context.Context;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -297,17 +295,10 @@ public class PatientDaoImpl implements PatientDao {
         return false;
     }
 
-    /**
-     * Results keep Hibernate Search's relevance order. Equal scores are tie-broken by personNameId, but only
-     * within the page returned by fetchHits(offset, length); the order of ties across page boundaries still
-     * follows Lucene document order.
-     */
     private List<PersonName> getPatientsByName(String name, Integer offset, Integer length) {
         SearchSession searchSession = Search.session(sessionFactory.getCurrentSession());
         String[] nameTokens = name.trim().split(" ");
-        List<ScoredHit<PersonName>> hits = searchSession.search(PersonName.class)
-                .select(f -> f.composite((PersonName personName, Float score) -> new ScoredHit<>(personName, score),
-                        f.entity(), f.score()))
+        return searchSession.search(PersonName.class)
                 .where(f -> {
                     BooleanPredicateClausesStep<?> bool = f.bool();
                     bool.must(f.match().field("voided").matching(false));
@@ -318,30 +309,6 @@ public class PatientDaoImpl implements PatientDao {
                     return bool;
                 })
                 .fetchHits(offset, length);
-        return orderByScoreThenId(hits, personName -> personName.getPersonNameId());
-    }
-
-    /**
-     * Hibernate Search breaks relevance ties by Lucene document order, which depends on the order in
-     * which the mass indexer loaded entities (it is multi-threaded, and Bahmni forces a full reindex on
-     * every startup). Keep the relevance ranking but break equal scores by entity id so equally relevant
-     * matches are always returned in the same order.
-     */
-    private static <T> List<T> orderByScoreThenId(List<ScoredHit<T>> hits, Function<T, Integer> idOf) {
-        List<ScoredHit<T>> ordered = new ArrayList<>(hits);
-        ordered.sort(Comparator.<ScoredHit<T>, Float>comparing(hit -> hit.score, Comparator.reverseOrder())
-                .thenComparing(hit -> idOf.apply(hit.entity)));
-        return ordered.stream().map(hit -> hit.entity).collect(toList());
-    }
-
-    private static final class ScoredHit<T> {
-        private final T entity;
-        private final Float score;
-
-        private ScoredHit(T entity, Float score) {
-            this.entity = entity;
-            this.score = score;
-        }
     }
 
     private PredicateFinalStep buildNameQuery(SearchPredicateFactory f, String name) {
@@ -385,6 +352,9 @@ public class PatientDaoImpl implements PatientDao {
         SearchSession searchSession = Search.session(sessionFactory.getCurrentSession());
         final String processedIdentifier = identifier.replace('%', '*');
         List<String> identifierTypeNames = getIdentifierTypeNames(filterOnAllIdentifiers);
+        if (identifierTypeNames.isEmpty()) {
+            return new ArrayList<>();
+        }
         return searchSession.search(PatientIdentifier.class)
                 .where(f -> {
                     BooleanPredicateClausesStep<?> bool = f.bool();
@@ -400,9 +370,7 @@ public class PatientDaoImpl implements PatientDao {
                     for (String identifierTypeName : identifierTypeNames) {
                         identifierTypeShouldJunction.should(f.phrase().field("identifierType.name").matching(identifierTypeName));
                     }
-                    if (!identifierTypeNames.isEmpty()) {
-                        bool.must(identifierTypeShouldJunction);
-                    }
+                    bool.must(identifierTypeShouldJunction);
                     return bool;
                 })
                 .sort(f -> f.field("identifierExact_sort").asc())
