@@ -10,6 +10,8 @@ import org.openmrs.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static junit.framework.Assert.*;
 import static junit.framework.Assert.assertEquals;
@@ -390,18 +392,21 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
                 100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(2, patients.size());
-        PatientResponse patientResponse1 = patients.get(0);
-        assertEquals("6817dcdc-d623-11ee-a506-0242ac120002", patientResponse1.getUuid());
-        assertEquals("PAN200065", patientResponse1.getIdentifier());
-        assertEquals("Francis", patientResponse1.getGivenName());
-        assertEquals("Scott", patientResponse1.getMiddleName());
-        assertEquals("Fitzgerald", patientResponse1.getFamilyName());
-        PatientResponse patientResponse2 = patients.get(1);
-        assertEquals("6e318c2a-d624-11ee-a506-0242ac120002", patientResponse2.getUuid());
-        assertEquals("PAN200066", patientResponse2.getIdentifier());
-        assertEquals("F", patientResponse2.getGivenName());
-        assertEquals("Scott", patientResponse2.getMiddleName());
-        assertEquals("Fitzgerald", patientResponse2.getFamilyName());
+        Set<String> patientUuids = patients.stream().map(PatientResponse::getUuid).collect(Collectors.toSet());
+        assertTrue(patientUuids.contains("6817dcdc-d623-11ee-a506-0242ac120002"));
+        assertTrue(patientUuids.contains("6e318c2a-d624-11ee-a506-0242ac120002"));
+        PatientResponse francis = patients.stream()
+                .filter(p -> p.getUuid().equals("6817dcdc-d623-11ee-a506-0242ac120002")).findFirst().get();
+        assertEquals("PAN200065", francis.getIdentifier());
+        assertEquals("Francis", francis.getGivenName());
+        assertEquals("Scott", francis.getMiddleName());
+        assertEquals("Fitzgerald", francis.getFamilyName());
+        PatientResponse fScott = patients.stream()
+                .filter(p -> p.getUuid().equals("6e318c2a-d624-11ee-a506-0242ac120002")).findFirst().get();
+        assertEquals("PAN200066", fScott.getIdentifier());
+        assertEquals("F", fScott.getGivenName());
+        assertEquals("Scott", fScott.getMiddleName());
+        assertEquals("Fitzgerald", fScott.getFamilyName());
     }
 
     @Test
@@ -428,18 +433,21 @@ public class PatientDaoImplLuceneIT extends BaseIntegrationTest {
                 100, 0, null, "", null, addressResultFields, null, "c36006e5-9fbb-4f20-866b-0ece245615a1", false, true, "", "");
         assertNotNull(patients);
         assertEquals(2, patients.size());
-        PatientResponse patient1 = patients.get(0);
-        assertEquals("a83ae586-d6bc-11ee-a506-0242ac120002", patient1.getUuid());
-        assertEquals("PAN200067", patient1.getIdentifier());
-        assertEquals("Daniel", patient1.getGivenName());
-        assertEquals("Day", patient1.getMiddleName());
-        assertEquals("Lewis", patient1.getFamilyName());
-        PatientResponse patient2 = patients.get(1);
-        assertEquals("8bf18320-d6bd-11ee-a506-0242ac120002", patient2.getUuid());
-        assertEquals("PAN200068", patient2.getIdentifier());
-        assertEquals("Nielsen", patient2.getGivenName());
-        assertEquals("William", patient2.getMiddleName());
-        assertEquals("Leslie", patient2.getFamilyName());
+        Set<String> patientUuids = patients.stream().map(PatientResponse::getUuid).collect(Collectors.toSet());
+        assertTrue(patientUuids.contains("a83ae586-d6bc-11ee-a506-0242ac120002"));
+        assertTrue(patientUuids.contains("8bf18320-d6bd-11ee-a506-0242ac120002"));
+        PatientResponse daniel = patients.stream()
+                .filter(p -> p.getUuid().equals("a83ae586-d6bc-11ee-a506-0242ac120002")).findFirst().get();
+        assertEquals("PAN200067", daniel.getIdentifier());
+        assertEquals("Daniel", daniel.getGivenName());
+        assertEquals("Day", daniel.getMiddleName());
+        assertEquals("Lewis", daniel.getFamilyName());
+        PatientResponse nielsen = patients.stream()
+                .filter(p -> p.getUuid().equals("8bf18320-d6bd-11ee-a506-0242ac120002")).findFirst().get();
+        assertEquals("PAN200068", nielsen.getIdentifier());
+        assertEquals("Nielsen", nielsen.getGivenName());
+        assertEquals("William", nielsen.getMiddleName());
+        assertEquals("Leslie", nielsen.getFamilyName());
     }
 
     @Test

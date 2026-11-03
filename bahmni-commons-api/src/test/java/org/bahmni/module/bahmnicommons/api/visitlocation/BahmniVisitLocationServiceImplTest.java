@@ -2,32 +2,29 @@ package org.bahmni.module.bahmnicommons.api.visitlocation;;
 
 import org.bahmni.module.bahmnicommons.api.builder.LocationBuilder;
 import org.bahmni.module.bahmnicommons.api.builder.VisitBuilder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Location;
 import org.openmrs.LocationTag;
 import org.openmrs.Visit;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Arrays;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-@PowerMockIgnore("javax.management.*")
-@PrepareForTest(Context.class)
-@RunWith(PowerMockRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class BahmniVisitLocationServiceImplTest {
     private BahmniVisitLocationServiceImpl bahmniVisitLocationService;
 
@@ -37,13 +34,19 @@ public class BahmniVisitLocationServiceImplTest {
     @Mock
     private UserContext userContext;
 
+    private MockedStatic<Context> mockedContext;
+
     @Before
     public void setUp() {
-        initMocks(this);
-        PowerMockito.mockStatic(Context.class);
-        when(Context.getLocationService()).thenReturn(locationService);
+        mockedContext = Mockito.mockStatic(Context.class);
+        mockedContext.when(Context::getLocationService).thenReturn(locationService);
 
         bahmniVisitLocationService = new BahmniVisitLocationServiceImpl(locationService);
+    }
+
+    @After
+    public void tearDown() {
+        mockedContext.close();
     }
 
     @Test(expected = IllegalArgumentException.class)

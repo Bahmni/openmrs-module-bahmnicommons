@@ -5,7 +5,7 @@
     <parent>
         <artifactId>bahmni-commons</artifactId>
         <groupId>org.bahmni.module</groupId>
-        <version>2.2.0-SNAPSHOT</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -61,13 +61,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

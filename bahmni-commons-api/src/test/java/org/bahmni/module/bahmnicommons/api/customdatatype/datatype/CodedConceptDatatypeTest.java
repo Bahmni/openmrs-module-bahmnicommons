@@ -1,32 +1,31 @@
 package org.bahmni.module.bahmnicommons.api.customdatatype.datatype;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.context.Context;
 import org.openmrs.customdatatype.InvalidCustomValueException;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Collections;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Context.class)
-@PowerMockIgnore("javax.management.*")
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class CodedConceptDatatypeTest {
     @Mock
     ConceptService conceptService;
+
+    private MockedStatic<Context> mockedContext;
 
     private CodedConceptDatatype codedConceptDatatype;
     private Concept concept;
@@ -43,11 +42,16 @@ public class CodedConceptDatatypeTest {
         concept.setAnswers(Collections.singletonList(answer));
         codedConceptDatatype = new CodedConceptDatatype();
 
-        PowerMockito.mockStatic(Context.class);
-        BDDMockito.when(Context.getConceptService()).thenReturn(conceptService);
+        mockedContext = Mockito.mockStatic(Context.class);
+        mockedContext.when(Context::getConceptService).thenReturn(conceptService);
 
         when(conceptService.getConcept(1)).thenReturn(concept);
         when(conceptService.getConceptByUuid("abcd")).thenReturn(concept);
+    }
+
+    @After
+    public void tearDown() {
+        mockedContext.close();
     }
 
     @Test
