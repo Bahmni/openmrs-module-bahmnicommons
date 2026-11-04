@@ -34,7 +34,8 @@ public class AppSettingsController extends BaseRestController {
             log.info("No module specified for retrieving properties");
             return Collections.emptyList();
         }
-        log.info("Retrieving properties/settings ... " + String.join(", ", module));
+        String message = "Retrieving properties/settings ... " + String.join(", ", module);
+        log.debug(message);
         return appConfigService.getAppProperties(module);
     }
 }
